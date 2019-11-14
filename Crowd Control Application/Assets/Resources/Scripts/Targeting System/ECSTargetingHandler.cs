@@ -44,7 +44,7 @@ public class ECSTargetingHandler : MonoBehaviour
 
     //wrapper function to spawn a seeker
     private void SpawnSeekerEntity(){
-        SpawnSeekerEntity(new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f)));
+        SpawnSeekerEntity(new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), /*UnityEngine.Random.Range(-5,5f)*/40f));
     }
     //spawns a seeker at a given position
     private void SpawnSeekerEntity(float3 position){
@@ -67,7 +67,7 @@ public class ECSTargetingHandler : MonoBehaviour
             typeof(Scale),
             typeof(Target)
         );
-        SetEntityComponentData(en, new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f)), cubeMesh, targetMaterial); //set component data
+        SetEntityComponentData(en, new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), /*UnityEngine.Random.Range(-5,5f)*/40f), cubeMesh, targetMaterial); //set component data
         eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
     }
 

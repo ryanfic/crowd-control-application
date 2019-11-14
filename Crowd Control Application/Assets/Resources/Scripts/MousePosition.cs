@@ -5,7 +5,8 @@ using UnityEngine;
 namespace MousePositionUtil{
     public class MousePosition
     {
-        private static float DefaultPlaneDistance = 0f;
+        private static float DefaultPlaneDistance = 0.01f;
+        
         public static Vector3 GetMouseWorldPosition() {
             Vector3 pos = Input.mousePosition;
             pos.z = 0.01f;
@@ -15,6 +16,11 @@ namespace MousePositionUtil{
         public static Vector3 GetMouseWorldPositionOnPlane(float dstToPlane){
             Vector3 pos = Input.mousePosition;
             pos.z += dstToPlane;
+            return GetMouseWorldPosition(pos, Camera.main);
+        }
+        public static Vector3 GetMouseWorldPositionOnPlane(){
+            Vector3 pos = Input.mousePosition;
+            pos.z += DefaultPlaneDistance;
             return GetMouseWorldPosition(pos, Camera.main);
         }
 

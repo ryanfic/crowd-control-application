@@ -10,8 +10,11 @@ using Unity.Burst;
 using MousePositionUtil;
 
 public class QuadrantSystem : ComponentSystem
-{    private const int quadrantZMultiplier = 1000000;
-    private const int quadrantYMultiplier = 1000;
+{   
+    private const int quadrantDimMax = 1000; // The maximum amount of quadrants you would expect
+                                            // used in the hashMap
+    private const int quadrantZMultiplier = quadrantDimMax*quadrantDimMax;
+    private const int quadrantYMultiplier = quadrantDimMax;
     private const int quadrantCellSize = 5;
     //given a position, calculate the hashmap key
     private static int GetPositionHashMapKey(float3 position){
@@ -40,17 +43,54 @@ public class QuadrantSystem : ComponentSystem
         Debug.DrawLine(botLowerLeft + new Vector3(1,0,1) * quadrantCellSize, botLowerLeft + new Vector3(1,1,1) * quadrantCellSize); //10
         Debug.DrawLine(botLowerLeft + new Vector3(0,1,1) * quadrantCellSize, botLowerLeft + new Vector3(1,1,1) * quadrantCellSize); //11
         Debug.DrawLine(botLowerLeft + new Vector3(1,1,0) * quadrantCellSize, botLowerLeft + new Vector3(1,1,1) * quadrantCellSize); //12
-        //Debug.Log("Pos" + position);
+        
     }
 
+    /*
+    * Given a specific key, find out how many entities are in that quadrant (in the hashmap)
+    */
+    private static int GetEntityCountInHashMap(NativeMultiHashMap<int, Entity> quadrantMultiHashMap, int hashMapKey){
+        Entity entity; //out for the function below
+        NativeMultiHashMapIterator<int> nativeMultiHashMapIterator; //another out for the function below
+        int count = 0;
+        //try to get to get the first value for the given key
+        if(quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out entity, out nativeMultiHashMapIterator)){
+            //if there is a value, try to get more (must go through once since there was at least one entity)
+            do{
+                count++; //there was an entity, let's count it!
+            } while(quadrantMultiHashMap.TryGetNextValue(out entity, ref nativeMultiHashMapIterator));
+        }
+        return count;
+    }
+
+    private struct SetQuadrantDataHashMapJob : IJobForEachWithEntity<Translation>{
+        public NativeMultiHashMap<int, Entity>.Concurrent quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
+                                                                    //a reference to the hashmap in question
+        public void Execute(Entity entity, int index, ref Translation translation){
+
+        }
+    }
     protected override void OnUpdate(){
+        //calculate the number of entities we have to store (entities with translation component)
+        EntityQuery entityQuery = GetEntityQuery(typeof(Translation));
 
         //NativeMultiHashMap is for storing the quadrants
         //quadrants need multiple things (values)
         //keys are ints, and it holds Entity s
-        NativeMultiHashMap<int, Entity> quadrantMultiHashMap;
+        //the length is calculated from above
+        NativeMultiHashMap<int, Entity> quadrantMultiHashMap = new NativeMultiHashMap<int, Entity>(entityQuery.CalculateLength(),Allocator.TempJob);
+
+        //Cycle through all entities and get their positions
+        //selects all entities with a translation component
+        Entities.ForEach((Entity entity, ref Translation translation) =>{
+            int hashMapKey = GetPositionHashMapKey(translation.Value);
+            quadrantMultiHashMap.Add(hashMapKey, entity);
+        });
         
-        Debug.Log("Mouse position: " + MousePosition.GetMouseWorldPositionOnPlane(50));
+        //Debug.Log(GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50)) + " Mouse position: " + MousePosition.GetMouseWorldPositionOnPlane(50));
         DebugDrawQuadrant(MousePosition.GetMouseWorldPositionOnPlane(50));
+        Debug.Log(GetEntityCountInHashMap(quadrantMultiHashMap,GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50))));
+        
+        quadrantMultiHashMap.Dispose();
     }
 }
