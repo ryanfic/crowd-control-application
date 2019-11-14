@@ -63,11 +63,13 @@ public class QuadrantSystem : ComponentSystem
         return count;
     }
 
+    [BurstCompile]
     private struct SetQuadrantDataHashMapJob : IJobForEachWithEntity<Translation>{
         public NativeMultiHashMap<int, Entity>.Concurrent quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
                                                                     //a reference to the hashmap in question
         public void Execute(Entity entity, int index, ref Translation translation){
-
+            int hashMapKey = GetPositionHashMapKey(translation.Value); //get the entity's hashmap key
+            quadrantMultiHashMap.Add(hashMapKey, entity); //add the entity to the hashmap
         }
     }
     protected override void OnUpdate(){
@@ -80,12 +82,22 @@ public class QuadrantSystem : ComponentSystem
         //the length is calculated from above
         NativeMultiHashMap<int, Entity> quadrantMultiHashMap = new NativeMultiHashMap<int, Entity>(entityQuery.CalculateLength(),Allocator.TempJob);
 
+        //using jobs
+        //Cycle through all entities and get their positions
+        //selects all entities with a translation component and adds them to the hashmap
+        SetQuadrantDataHashMapJob setQuadrantDataHashMapJob = new SetQuadrantDataHashMapJob{
+            quadrantMultiHashMap = quadrantMultiHashMap.ToConcurrent(), //ToConcurrent used to allow for concurrent writing
+        };
+        JobHandle jobHandle = JobForEachExtensions.Schedule(setQuadrantDataHashMapJob, entityQuery);
+        jobHandle.Complete();
+
         //Cycle through all entities and get their positions
         //selects all entities with a translation component
-        Entities.ForEach((Entity entity, ref Translation translation) =>{
+        //without jobs
+        /*Entities.ForEach((Entity entity, ref Translation translation) =>{
             int hashMapKey = GetPositionHashMapKey(translation.Value);
             quadrantMultiHashMap.Add(hashMapKey, entity);
-        });
+        });*/
         
         //Debug.Log(GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50)) + " Mouse position: " + MousePosition.GetMouseWorldPositionOnPlane(50));
         DebugDrawQuadrant(MousePosition.GetMouseWorldPositionOnPlane(50));
