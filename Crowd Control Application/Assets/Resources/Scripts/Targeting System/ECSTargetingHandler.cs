@@ -19,13 +19,13 @@ public class ECSTargetingHandler : MonoBehaviour
     private void Start() {
         eManager = World.Active.EntityManager;
 
-        for(int i = 0; i < 2; i++){
+        for(int i = 0; i < 2000; i++){
             SpawnSeekerEntity();
         }
         
 
 
-        for(int i = 0; i < 10; i++){
+        for(int i = 0; i < 1000; i++){
             SpawnTargetEntity();
         }
     }
@@ -36,7 +36,7 @@ public class ECSTargetingHandler : MonoBehaviour
         if(spawnTargetTimer < 0){ //if the timer has ended
             spawnTargetTimer = 1f; //reset the timer
 
-            for(int i = 0; i < 5; i++){ //spawn more targets
+            for(int i = 0; i < 500; i++){ //spawn more targets
                 SpawnTargetEntity();
             }
         }
@@ -44,7 +44,7 @@ public class ECSTargetingHandler : MonoBehaviour
 
     //wrapper function to spawn a seeker
     private void SpawnSeekerEntity(){
-        SpawnSeekerEntity(new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), /*UnityEngine.Random.Range(-5,5f)*/40f));
+        SpawnSeekerEntity(new float3(UnityEngine.Random.Range(-20,20f), UnityEngine.Random.Range(-20,20f), /*UnityEngine.Random.Range(-5,5f)*/40f));
     }
     //spawns a seeker at a given position
     private void SpawnSeekerEntity(float3 position){
@@ -53,10 +53,12 @@ public class ECSTargetingHandler : MonoBehaviour
             typeof(LocalToWorld),
             typeof(RenderMesh),
             typeof(Scale),
-            typeof(Seeker)
+            typeof(Seeker),
+            typeof(QuadrantEntity)
         );
         SetEntityComponentData(en, position, cubeMesh, seekerMaterial); //set component data
         eManager.SetComponentData(en, new Scale{ Value = 1.5f}); //Set size of entity
+        eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Seeker}); //set the type of entity
     }
 
     private void SpawnTargetEntity(){
@@ -65,10 +67,12 @@ public class ECSTargetingHandler : MonoBehaviour
             typeof(LocalToWorld),
             typeof(RenderMesh),
             typeof(Scale),
-            typeof(Target)
+            typeof(Target),
+            typeof(QuadrantEntity)
         );
-        SetEntityComponentData(en, new float3(UnityEngine.Random.Range(-5,5f), UnityEngine.Random.Range(-5,5f), /*UnityEngine.Random.Range(-5,5f)*/40f), cubeMesh, targetMaterial); //set component data
+        SetEntityComponentData(en, new float3(UnityEngine.Random.Range(-20,20f), UnityEngine.Random.Range(-20,20f), /*UnityEngine.Random.Range(-5,5f)*/40f), cubeMesh, targetMaterial); //set component data
         eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
+        eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Target}); //set the type of entity
     }
 
     //Set up entity components of a given entity

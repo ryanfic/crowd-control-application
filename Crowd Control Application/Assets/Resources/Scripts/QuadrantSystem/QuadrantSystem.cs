@@ -9,15 +9,35 @@ using Unity.Jobs;
 using Unity.Burst;
 using MousePositionUtil;
 
+public struct QuadrantEntity : IComponentData{ // Quadrant System only works with entities with this component
+    //empty component works fine, but we can add info too
+    public TypeEnum typeEnum;
+
+    public enum TypeEnum{
+        Seeker,
+        Target,
+        Crowd
+    }
+}
+
+public struct QuadrantData{
+    public Entity entity;
+    public float3 position;
+    public QuadrantEntity quadrantEntity;
+}
 public class QuadrantSystem : ComponentSystem
 {   
+    //NativeMultiHashMap is for storing the quadrants
+    //quadrants need multiple things (values)
+    //keys are ints, and it holds Entity s
+    public static NativeMultiHashMap <int, QuadrantData> quadrantMultiHashMap;
     private const int quadrantDimMax = 1000; // The maximum amount of quadrants you would expect
                                             // used in the hashMap
-    private const int quadrantZMultiplier = quadrantDimMax*quadrantDimMax;
-    private const int quadrantYMultiplier = quadrantDimMax;
+    public const int quadrantZMultiplier = quadrantDimMax*quadrantDimMax;
+    public const int quadrantYMultiplier = quadrantDimMax;
     private const int quadrantCellSize = 5;
     //given a position, calculate the hashmap key
-    private static int GetPositionHashMapKey(float3 position){
+    public static int GetPositionHashMapKey(float3 position){
         return (int) (math.floor(position.x / quadrantCellSize) 
         + (quadrantYMultiplier * math.floor(position.y / quadrantCellSize)) 
         + (quadrantZMultiplier * math.floor(position.z / quadrantCellSize)));
@@ -49,39 +69,61 @@ public class QuadrantSystem : ComponentSystem
     /*
     * Given a specific key, find out how many entities are in that quadrant (in the hashmap)
     */
-    private static int GetEntityCountInHashMap(NativeMultiHashMap<int, Entity> quadrantMultiHashMap, int hashMapKey){
-        Entity entity; //out for the function below
+    private static int GetEntityCountInHashMap(NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap, int hashMapKey){
+        QuadrantData quadrantData; //out for the function below
         NativeMultiHashMapIterator<int> nativeMultiHashMapIterator; //another out for the function below
         int count = 0;
         //try to get to get the first value for the given key
-        if(quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out entity, out nativeMultiHashMapIterator)){
+        if(quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out quadrantData, out nativeMultiHashMapIterator)){
             //if there is a value, try to get more (must go through once since there was at least one entity)
             do{
                 count++; //there was an entity, let's count it!
-            } while(quadrantMultiHashMap.TryGetNextValue(out entity, ref nativeMultiHashMapIterator));
+            } while(quadrantMultiHashMap.TryGetNextValue(out quadrantData, ref nativeMultiHashMapIterator));
         }
         return count;
     }
 
     [BurstCompile]
-    private struct SetQuadrantDataHashMapJob : IJobForEachWithEntity<Translation>{
-        public NativeMultiHashMap<int, Entity>.Concurrent quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
+    private struct SetQuadrantDataHashMapJob : IJobForEachWithEntity<Translation, QuadrantEntity>{
+        public NativeMultiHashMap<int, QuadrantData>.Concurrent quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
                                                                     //a reference to the hashmap in question
-        public void Execute(Entity entity, int index, ref Translation translation){
+        public void Execute(Entity entity, int index, ref Translation translation, ref QuadrantEntity quadrantEnt){
             int hashMapKey = GetPositionHashMapKey(translation.Value); //get the entity's hashmap key
-            quadrantMultiHashMap.Add(hashMapKey, entity); //add the entity to the hashmap
+            quadrantMultiHashMap.Add(hashMapKey, new QuadrantData{
+                    entity = entity,
+                    position = translation.Value,
+                    quadrantEntity = quadrantEnt
+                }); //add the entity and its relevant values to the hashmap
         }
     }
+
+    /*
+        When the Quadrant System is created
+    */
+    protected override void OnCreate(){
+        quadrantMultiHashMap = new NativeMultiHashMap<int, QuadrantData>(0,Allocator.Persistent); // Instantiate the hashmap
+        base.OnCreate();
+    }
+
+    protected override void OnDestroy(){
+        quadrantMultiHashMap.Dispose(); // Remove the hashmap
+        base.OnDestroy();
+    }
+
     protected override void OnUpdate(){
-        //calculate the number of entities we have to store (entities with translation component)
-        EntityQuery entityQuery = GetEntityQuery(typeof(Translation));
+        //calculate the number of entities we have to store (entities with translation component and QuadrantEntity component)
+        EntityQuery entityQuery = GetEntityQuery(typeof(Translation), typeof(QuadrantEntity));
 
-        //NativeMultiHashMap is for storing the quadrants
-        //quadrants need multiple things (values)
-        //keys are ints, and it holds Entity s
+        
         //the length is calculated from above
-        NativeMultiHashMap<int, Entity> quadrantMultiHashMap = new NativeMultiHashMap<int, Entity>(entityQuery.CalculateLength(),Allocator.TempJob);
+        //NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap = new NativeMultiHashMap<int, QuadrantData>(entityQuery.CalculateLength(),Allocator.TempJob);
 
+        quadrantMultiHashMap.Clear(); // clear the hashmap
+
+        // if the amount of stuff to add to the hashmap is larger than the capacity of the hashmap
+        if(entityQuery.CalculateLength() > quadrantMultiHashMap.Capacity){
+            quadrantMultiHashMap.Capacity = entityQuery.CalculateLength(); //Increase the hashmap to hold everything
+        }
         //using jobs
         //Cycle through all entities and get their positions
         //selects all entities with a translation component and adds them to the hashmap
@@ -101,8 +143,8 @@ public class QuadrantSystem : ComponentSystem
         
         //Debug.Log(GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50)) + " Mouse position: " + MousePosition.GetMouseWorldPositionOnPlane(50));
         DebugDrawQuadrant(MousePosition.GetMouseWorldPositionOnPlane(50));
-        Debug.Log(GetEntityCountInHashMap(quadrantMultiHashMap,GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50))));
+        //Debug.Log(GetEntityCountInHashMap(quadrantMultiHashMap,GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50))));
         
-        quadrantMultiHashMap.Dispose();
+        //quadrantMultiHashMap.Dispose();
     }
 }
