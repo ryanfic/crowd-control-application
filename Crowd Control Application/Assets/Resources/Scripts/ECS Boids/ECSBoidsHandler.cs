@@ -14,8 +14,8 @@ public struct FlockBehaviour : IComponentData{
     public float AvoidanceWeight;
     public float CohesionRadius;
     public float CohesionWeight;
-    public float AlignmentRadius;
-    public float AlignmentWeight;
+    //public float AlignmentRadius;
+    //public float AlignmentWeight;
 }
 public struct Crowd : IComponentData{}
 public class ECSBoidsHandler : MonoBehaviour
@@ -25,6 +25,11 @@ public class ECSBoidsHandler : MonoBehaviour
     [SerializeField] private float cellWidth = 10f;
     [SerializeField] private int agentsPerCell = 50;
     [SerializeField] private int numAgentsToSpawn = 125;
+
+    [SerializeField] private float crowdAvoidanceRadius = 5f;
+    [SerializeField] private float crowdAvoidanceWeight = 1f;
+    [SerializeField] private float crowdCohesionRadius = 10f;
+    [SerializeField] private float crowdCohesionWeight = 1f;
 
     private static EntityManager eManager;
 
@@ -99,10 +104,16 @@ public class ECSBoidsHandler : MonoBehaviour
             typeof(RenderMesh),
             //typeof(Scale),
             typeof(FlockBehaviour),
+            typeof(BoidsMovement),
             typeof(QuadrantEntity)
         );
         SetEntityComponentData(en, new float3(pos.x, pos.y, pos.z), entityMesh, entityMaterial); //set component data
         //eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
+        eManager.SetComponentData(en,new FlockBehaviour{AvoidanceRadius = crowdAvoidanceRadius,
+                                                        AvoidanceWeight = crowdAvoidanceWeight,
+                                                        CohesionRadius = crowdCohesionRadius,
+                                                        CohesionWeight = crowdCohesionWeight});
+        eManager.SetComponentData(en, new BoidsMovement{movement = float3.zero});
         eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Crowd}); //set the type of entity
     }
     private void SetEntityComponentData(Entity entity, float3 spawnPosition, Mesh mesh, Material material)

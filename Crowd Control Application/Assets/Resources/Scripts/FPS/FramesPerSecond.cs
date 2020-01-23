@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System.IO;
+
 public class FramesPerSecond : MonoBehaviour
 {
     private Rect fpsRect;
@@ -34,10 +35,7 @@ public class FramesPerSecond : MonoBehaviour
             yield return new WaitForSeconds(frequency); // Do nothing for a second (or how long frequency is set to)
             fps = 1 / Time.smoothDeltaTime; //recalculate FPS
             avgFPS = ((avgFPS * numFPSAdded) + fps)/(++numFPSAdded);
-            //Debug.Log("FPS: "+fps);
-            //Debug.Log("Avg FPS: " + avgFPS);
             WriteFPSToFile();
-            
         }
     }
 
@@ -48,7 +46,6 @@ public class FramesPerSecond : MonoBehaviour
         GUI.Label(fpsRect,"FPS: " + string.Format("{0:0.0}",fps) 
             + "\nAverage FPS: " + string.Format("{0:0.0}",avgFPS)
             + "\nTime: " + string.Format("{0:0.0}",Time.time) ,style); // string.Format makes the FPS have only 1 decimal place
-        
     }
 
     /*
