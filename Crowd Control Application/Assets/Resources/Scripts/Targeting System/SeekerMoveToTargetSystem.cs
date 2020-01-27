@@ -15,7 +15,7 @@ public class SeekerMoveToTargetSystem : ComponentSystem
         
                 float3 targetDir = math.normalize(targetTranslation.Value - transl.Value); //the direction for movement
                 float moveSpeed = 5f; //movement speed
-                transl.Value += targetDir * moveSpeed * Time.deltaTime; //add movement to the translation
+                transl.Value += targetDir * moveSpeed * Time.DeltaTime; //add movement to the translation
             
                 if(math.distance(transl.Value, targetTranslation.Value) < 0.2f){// check distance to target
                     //Close to target, destroy it

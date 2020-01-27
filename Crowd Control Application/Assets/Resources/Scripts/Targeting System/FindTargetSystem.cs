@@ -261,7 +261,7 @@ public class FindTargetJobSystem : JobComponentSystem{
         targetTranslationArray.Dispose();*/
 
         EntityQuery seekerQuery = GetEntityQuery(typeof(Seeker),ComponentType.Exclude<HasTarget>()); // Need number of seekers to make closest target array, so query all seekers that do not have targets
-        NativeArray<Entity> closestTargetEntityArray = new NativeArray<Entity>(seekerQuery.CalculateLength(), Allocator.TempJob); // Filled in the burst job, then used in the other job to assign closest targets
+        NativeArray<Entity> closestTargetEntityArray = new NativeArray<Entity>(seekerQuery.CalculateEntityCount(), Allocator.TempJob); // Filled in the burst job, then used in the other job to assign closest targets
         /*
         FindTargetJob findTargetJob = new FindTargetJob{ // Create the job
             targetArray = tarArray,

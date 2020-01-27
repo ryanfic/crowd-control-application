@@ -16,8 +16,8 @@ public class ECSBoidsMovementSystem : ComponentSystem
         
                 //float3 targetDir = math.normalize(targetTranslation.Value - transl.Value); //the direction for movement
                 //if(math.distancesq(boidsMovement.movement, float3.zero) < tolerance * tolerance)
-                    Debug.Log(boidsMovement.movement);
-                    transl.Value += boidsMovement.movement * movementSpeed * Time.deltaTime; //add movement to the translation
+                    //Debug.Log(boidsMovement.movement);
+                    transl.Value += boidsMovement.movement * movementSpeed * Time.DeltaTime; //add movement to the translation
             
                 /*if(math.distance(transl.Value, targetTranslation.Value) < 0.2f){// check distance to target
                     //Close to target, destroy it

@@ -85,7 +85,7 @@ public class QuadrantSystem : ComponentSystem
 
     [BurstCompile]
     private struct SetQuadrantDataHashMapJob : IJobForEachWithEntity<Translation, QuadrantEntity>{
-        public NativeMultiHashMap<int, QuadrantData>.Concurrent quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
+        public NativeMultiHashMap<int, QuadrantData>.ParallelWriter quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
                                                                     //a reference to the hashmap in question
         public void Execute(Entity entity, int index, ref Translation translation, ref QuadrantEntity quadrantEnt){
             int hashMapKey = GetPositionHashMapKey(translation.Value); //get the entity's hashmap key
@@ -121,14 +121,14 @@ public class QuadrantSystem : ComponentSystem
         quadrantMultiHashMap.Clear(); // clear the hashmap
 
         // if the amount of stuff to add to the hashmap is larger than the capacity of the hashmap
-        if(entityQuery.CalculateLength() > quadrantMultiHashMap.Capacity){
-            quadrantMultiHashMap.Capacity = entityQuery.CalculateLength(); //Increase the hashmap to hold everything
+        if(entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity){
+            quadrantMultiHashMap.Capacity = entityQuery.CalculateEntityCount(); //Increase the hashmap to hold everything
         }
         //using jobs
         //Cycle through all entities and get their positions
         //selects all entities with a translation component and adds them to the hashmap
         SetQuadrantDataHashMapJob setQuadrantDataHashMapJob = new SetQuadrantDataHashMapJob{
-            quadrantMultiHashMap = quadrantMultiHashMap.ToConcurrent(), //ToConcurrent used to allow for concurrent writing
+            quadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter()/*.ToConcurrent()*/, //ToConcurrent used to allow for concurrent writing
         };
         JobHandle jobHandle = JobForEachExtensions.Schedule(setQuadrantDataHashMapJob, entityQuery);
         jobHandle.Complete();
