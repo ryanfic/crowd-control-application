@@ -11,15 +11,15 @@ using Unity.Burst;
 public struct CrowdData{
     public Entity entity;
     public Translation translation;
-    public FlockBehaviour flockBehaviour;
+    public ReynoldsFlockBehaviour flockBehaviour;
 }
-public struct BoidsMovement : IComponentData{
+/*public struct FlockMovement : IComponentData{
     public float3 movement;
-}
-public class ECSBoidsSystem : JobComponentSystem
+}*/
+public class ReynoldsFlockSystem : JobComponentSystem
 {
     //[BurstCompile]
-    private struct FlockBehaviourJob : IJobForEachWithEntity<Translation,FlockBehaviour,BoidsMovement> {
+    private struct FlockBehaviourJob : IJobForEachWithEntity<Translation,ReynoldsFlockBehaviour,ReynoldsFlockMovement> {
         // Find a list of nearby agents
         // Do the calculation for flocking
         // Change the translation of the agent
@@ -27,14 +27,13 @@ public class ECSBoidsSystem : JobComponentSystem
         [ReadOnly] public NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby crowd agents
         // Jobs need an Execute function
         //ReadOnly on the Translation because the translation is not being altered
-        public void Execute(Entity entity, int index, ref Translation trans, ref FlockBehaviour flockBehaviour, ref BoidsMovement boidsMovement){
+        public void Execute(Entity entity, int index, ref Translation trans, ref ReynoldsFlockBehaviour flockBehaviour, ref ReynoldsFlockMovement flockMovement){
             float3 agentPosition = trans.Value; // the position of the seeker
             List<float3> nearCrowdPosList = new List<float3>();
-            float searchRadius = math.max(flockBehaviour.CohesionRadius,flockBehaviour.AvoidanceRadius);
+            float searchRadius = math.max(flockBehaviour.CohesionRadius,flockBehaviour.AvoidanceRadius); // Choose the farther radius
             
             int hashMapKey = QuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
 
-            // Cohesion Radius is used because it is larger than the separation radius, but if other behaviours need things that are farther from the agent, may need to use other distance
             FindCrowdAgents(hashMapKey, agentPosition, ref nearCrowdPosList, ref searchRadius); // Seach the quadrant that the seeker is in
             FindCrowdAgents(hashMapKey + 1,agentPosition, ref nearCrowdPosList, ref searchRadius); // search the quadrant to the right
             FindCrowdAgents(hashMapKey - 1,agentPosition, ref nearCrowdPosList, ref searchRadius); // search the quadrant to the left
@@ -45,7 +44,7 @@ public class ECSBoidsSystem : JobComponentSystem
             FindCrowdAgents(hashMapKey + 1 - QuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // down right
             FindCrowdAgents(hashMapKey -1 - QuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // down left
 
-            ApplyFlockingBehaviour(ref trans, ref nearCrowdPosList, ref flockBehaviour, ref boidsMovement);
+            ApplyFlockingBehaviour(ref trans, ref nearCrowdPosList, ref flockBehaviour, ref flockMovement);
 
             /*FindCrowdAgents(hashMapKey, agentPosition, ref nearCrowdPosList, ref count, ref flockBehaviour.CohesionRadius); // Seach the quadrant that the seeker is in
             FindCrowdAgents(hashMapKey + 1,agentPosition, ref nearCrowdPosList, ref count, ref flockBehaviour.CohesionRadius); // search the quadrant to the right
@@ -57,7 +56,7 @@ public class ECSBoidsSystem : JobComponentSystem
             FindCrowdAgents(hashMapKey + 1 - QuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref count, ref flockBehaviour.CohesionRadius); // down right
             FindCrowdAgents(hashMapKey -1 - QuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref count, ref flockBehaviour.CohesionRadius); // down left
 
-            ApplyFlockingBehaviour(ref trans, ref nearCrowdPosList, ref count, ref flockBehaviour, ref boidsMovement);*/
+            ApplyFlockingBehaviour(ref trans, ref nearCrowdPosList, ref count, ref flockBehaviour, ref flockMovement);*/
             // once all nearby crowd agents found, add them to the array of nearby crowd agent lists
             //nearbyCrowdArray[index] = nearCrowdPosList;
             /*crowdArray[index] = new CrowdData{
@@ -123,7 +122,7 @@ public class ECSBoidsSystem : JobComponentSystem
             //return to;
         }*/
 
-        private void ApplyFlockingBehaviour(ref Translation agentTranslation, ref List<float3> nearbyCrowdPosList,  ref FlockBehaviour flockBehaviour, ref BoidsMovement boidsMovement){
+        private void ApplyFlockingBehaviour(ref Translation agentTranslation, ref List<float3> nearbyCrowdPosList,  ref ReynoldsFlockBehaviour flockBehaviour, ref ReynoldsFlockMovement flockMovement){
             float3 move = float3.zero; // where the agent will move
             // Calculate Avoidance first
             float3 avoidance = CalculateAvoidance(ref agentTranslation.Value, ref nearbyCrowdPosList, ref flockBehaviour);
@@ -157,13 +156,13 @@ public class ECSBoidsSystem : JobComponentSystem
             }
             // May want to calculate alignment after, but not at time of writing this
 
-            boidsMovement.movement = move;
+            flockMovement.movement = move;
             //float moveSpeed = 5f; //movement speed
             //agentTranslation.Value += move * moveSpeed * Time.deltaTime; //add movement to the translation
             //return move;
         }
 
-        private void ApplyFlockingBehaviour(ref Translation agentTranslation, ref float3[] nearbyCrowdPosList, ref int count, ref FlockBehaviour flockBehaviour, ref BoidsMovement boidsMovement){
+        private void ApplyFlockingBehaviour(ref Translation agentTranslation, ref float3[] nearbyCrowdPosList, ref int count, ref ReynoldsFlockBehaviour flockBehaviour, ref ReynoldsFlockMovement flockMovement){
             float3 move = float3.zero; // where the agent will move
             // Calculate Avoidance first
             float3 avoidance = CalculateAvoidance(ref agentTranslation.Value, ref nearbyCrowdPosList, ref count, ref flockBehaviour);
@@ -197,13 +196,13 @@ public class ECSBoidsSystem : JobComponentSystem
             }
             // May want to calculate alignment after, but not at time of writing this
 
-            boidsMovement.movement = move;
+            flockMovement.movement = move;
             //float moveSpeed = 5f; //movement speed
             //agentTranslation.Value += move * moveSpeed * Time.deltaTime; //add movement to the translation
             //return move;
         }
 
-        private float3 CalculateAvoidance(ref float3 agentPosition, ref /*Native*/List<float3> context, /*[ReadOnly]*/ ref FlockBehaviour flockBehaviour)
+        private float3 CalculateAvoidance(ref float3 agentPosition, ref /*Native*/List<float3> context, /*[ReadOnly]*/ ref ReynoldsFlockBehaviour flockBehaviour)
         {
             //if no neighbours, return no adjustment
             if(context.Count == 0)
@@ -230,7 +229,7 @@ public class ECSBoidsSystem : JobComponentSystem
             }
             return avoidanceMove;
         }
-        private float3 CalculateAvoidance(ref float3 agentPosition, ref float3[] context, ref int count, ref FlockBehaviour flockBehaviour)
+        private float3 CalculateAvoidance(ref float3 agentPosition, ref float3[] context, ref int count, ref ReynoldsFlockBehaviour flockBehaviour)
         {
             //if no neighbours, return no adjustment
             if(count == 0)
@@ -258,7 +257,7 @@ public class ECSBoidsSystem : JobComponentSystem
             return avoidanceMove;
         }
 
-        private float3 CalculateCohesion(ref float3 agentPosition, ref List<float3> context,  ref FlockBehaviour flockBehaviour){
+        private float3 CalculateCohesion(ref float3 agentPosition, ref List<float3> context,  ref ReynoldsFlockBehaviour flockBehaviour){
             //if no neighbours, return no adjustment
             if(context.Count == 0)
             {
@@ -281,7 +280,7 @@ public class ECSBoidsSystem : JobComponentSystem
             cohesionMove -= agentPosition;
             return cohesionMove;
         }
-        private float3 CalculateCohesion(ref float3 agentPosition, ref float3[] context, ref int length, ref FlockBehaviour flockBehaviour){
+        private float3 CalculateCohesion(ref float3 agentPosition, ref float3[] context, ref int length, ref ReynoldsFlockBehaviour flockBehaviour){
             //if no neighbours, return no adjustment
             if(length == 0)
             {
@@ -305,14 +304,17 @@ public class ECSBoidsSystem : JobComponentSystem
             cohesionMove -= agentPosition;
             return cohesionMove;
         }
+
     }
+
+    
 
     [RequireComponentTag(typeof(Crowd))] // The Job will only run on entities that are seekers
     private struct AddComponentJob : IJobForEachWithEntity<Translation>{
         [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<float3> crowdMovementArray; // Used to assign all closest targets to seekers
         public EntityCommandBuffer.Concurrent entityCommandBuffer;
         public void Execute(Entity entity, int index, [ReadOnly] ref Translation trans){
-            entityCommandBuffer.AddComponent(index, entity, new BoidsMovement{ movement = crowdMovementArray[index]});
+            entityCommandBuffer.AddComponent(index, entity, new ReynoldsFlockMovement{ movement = crowdMovementArray[index]});
         }
     }
     
@@ -323,7 +325,7 @@ public class ECSBoidsSystem : JobComponentSystem
         public void Execute(int index){
             //float3 avoidance = CalculateAvoidance(crowdArray[index].translation.Value,nearbyCrowdArray[index], crowdArray[index].flockBehaviour);
         }
-        private float3 CalculateAvoidance(float3 agentPosition, NativeList<float3> context, FlockBehaviour flockBehaviour)
+        private float3 CalculateAvoidance(float3 agentPosition, NativeList<float3> context, ReynoldsFlockBehaviour flockBehaviour)
         {
             //if no neighbours, return no adjustment
             if(context.Length == 0)

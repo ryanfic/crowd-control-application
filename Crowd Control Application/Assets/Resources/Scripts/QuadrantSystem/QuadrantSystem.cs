@@ -9,7 +9,7 @@ using Unity.Jobs;
 using Unity.Burst;
 using MousePositionUtil;
 
-public struct QuadrantEntity : IComponentData{ // Quadrant System only works with entities with this component
+/*public struct QuadrantEntity : IComponentData{ // Quadrant System only works with entities with this component
     //empty component works fine, but we can add info too
     public TypeEnum typeEnum;
 
@@ -18,7 +18,7 @@ public struct QuadrantEntity : IComponentData{ // Quadrant System only works wit
         Target,
         Crowd
     }
-}
+}*/
 
 public struct QuadrantData{
     public Entity entity;
@@ -128,7 +128,7 @@ public class QuadrantSystem : ComponentSystem
         //Cycle through all entities and get their positions
         //selects all entities with a translation component and adds them to the hashmap
         SetQuadrantDataHashMapJob setQuadrantDataHashMapJob = new SetQuadrantDataHashMapJob{
-            quadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter()/*.ToConcurrent()*/, //ToConcurrent used to allow for concurrent writing
+            quadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(), //ToConcurrent used to allow for concurrent writing
         };
         JobHandle jobHandle = JobForEachExtensions.Schedule(setQuadrantDataHashMapJob, entityQuery);
         jobHandle.Complete();

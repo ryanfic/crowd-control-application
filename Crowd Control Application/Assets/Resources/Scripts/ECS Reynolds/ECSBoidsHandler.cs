@@ -9,15 +9,14 @@ using Unity.Collections;
 using Unity.Jobs;
 
 //namespace ECSBoids{
-public struct FlockBehaviour : IComponentData{
+/*public struct FlockBehaviour : IComponentData{
     public float AvoidanceRadius;
     public float AvoidanceWeight;
     public float CohesionRadius;
     public float CohesionWeight;
     //public float AlignmentRadius;
     //public float AlignmentWeight;
-}
-public struct Crowd : IComponentData{}
+}*/
 public class ECSBoidsHandler : MonoBehaviour
 {
     [SerializeField] private Material entityMaterial;
@@ -103,17 +102,17 @@ public class ECSBoidsHandler : MonoBehaviour
             typeof(LocalToWorld),
             typeof(RenderMesh),
             //typeof(Scale),
-            typeof(FlockBehaviour),
-            typeof(BoidsMovement),
+            typeof(ReynoldsFlockBehaviour),
+            typeof(ReynoldsFlockMovement),
             typeof(QuadrantEntity)
         );
         SetEntityComponentData(en, new float3(pos.x, pos.y, pos.z), entityMesh, entityMaterial); //set component data
         //eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
-        eManager.SetComponentData(en,new FlockBehaviour{AvoidanceRadius = crowdAvoidanceRadius,
+        eManager.SetComponentData(en,new ReynoldsFlockBehaviour{AvoidanceRadius = crowdAvoidanceRadius,
                                                         AvoidanceWeight = crowdAvoidanceWeight,
                                                         CohesionRadius = crowdCohesionRadius,
                                                         CohesionWeight = crowdCohesionWeight});
-        eManager.SetComponentData(en, new BoidsMovement{movement = float3.zero});
+        eManager.SetComponentData(en, new ReynoldsFlockMovement{movement = float3.zero});
         eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Crowd}); //set the type of entity
     }
     private void SetEntityComponentData(Entity entity, float3 spawnPosition, Mesh mesh, Material material)
