@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 
+[GenerateAuthoringComponent]
 public struct ReynoldsFlockBehaviour : IComponentData{
     public float AvoidanceRadius;
     public float AvoidanceWeight;
