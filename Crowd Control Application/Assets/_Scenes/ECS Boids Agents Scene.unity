@@ -223,7 +223,7 @@ MonoBehaviour:
   entityMesh: {fileID: 10208, guid: 0000000000000000e000000000000000, type: 0}
   cellWidth: 20
   agentsPerCell: 25
-  numAgentsToSpawn: 10000
+  numAgentsToSpawn: 1000
   crowdAvoidanceRadius: 5
   crowdAvoidanceWeight: 5
   crowdCohesionRadius: 10

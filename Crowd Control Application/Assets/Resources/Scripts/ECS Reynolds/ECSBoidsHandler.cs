@@ -30,6 +30,11 @@ public class ECSBoidsHandler : MonoBehaviour
     [SerializeField] private float crowdCohesionRadius = 10f;
     [SerializeField] private float crowdCohesionWeight = 1f;
 
+    [SerializeField] private float crowdMaxVelocity = 5f; // The maximum speed of the agent
+    [SerializeField] private float crowdFleeWeight = 0f;
+    [SerializeField] private float crowdFlockWeight = 5f;
+    [SerializeField] private float crowdSeekWeight = 0F;
+
     private static EntityManager eManager;
 
     
@@ -103,7 +108,8 @@ public class ECSBoidsHandler : MonoBehaviour
             typeof(RenderMesh),
             //typeof(Scale),
             typeof(ReynoldsFlockBehaviour),
-            typeof(ReynoldsFlockMovement),
+            typeof(ReynoldsMovementValues),
+            typeof(ReynoldsBehaviourWeights),
             typeof(QuadrantEntity)
         );
         SetEntityComponentData(en, new float3(pos.x, pos.y, pos.z), entityMesh, entityMaterial); //set component data
@@ -112,8 +118,17 @@ public class ECSBoidsHandler : MonoBehaviour
                                                         AvoidanceWeight = crowdAvoidanceWeight,
                                                         CohesionRadius = crowdCohesionRadius,
                                                         CohesionWeight = crowdCohesionWeight});
-        eManager.SetComponentData(en, new ReynoldsFlockMovement{movement = float3.zero});
+        eManager.SetComponentData(en, new ReynoldsMovementValues{flockMovement = float3.zero,
+                                                        seekMovement = float3.zero,
+                                                        fleeMovement = float3.zero});
         eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Crowd}); //set the type of entity
+        eManager.SetComponentData(en, new ReynoldsBehaviourWeights{
+                                        maxVelocity = crowdMaxVelocity, // The maximum speed of the agent
+                                        fleeWeight = crowdFleeWeight,
+                                        flockWeight = crowdFlockWeight,
+                                        seekWeight = crowdSeekWeight
+        });
+        eManager.AddBuffer<ReynoldsNearbyFlockPos>(en);
     }
     private void SetEntityComponentData(Entity entity, float3 spawnPosition, Mesh mesh, Material material)
     {

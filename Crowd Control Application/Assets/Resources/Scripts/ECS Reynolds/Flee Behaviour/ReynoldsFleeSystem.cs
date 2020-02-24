@@ -11,18 +11,18 @@ using Unity.Burst;
 public class ReynoldsFleeSystem : JobComponentSystem
 {
     [BurstCompile]
-    private struct FleeBehaviourJob : IJobForEachWithEntity<Translation,ReynoldsFleeMovement,HasReynoldsFleeTargetPos,ReynoldsFleeSafeDistance>{
-        public void Execute(Entity entity, int index, ref Translation trans, ref ReynoldsFleeMovement fleeMovement, [ReadOnly] ref HasReynoldsFleeTargetPos targetPos, [ReadOnly] ref ReynoldsFleeSafeDistance safeDist){
+    private struct FleeBehaviourJob : IJobForEachWithEntity<Translation,ReynoldsMovementValues,HasReynoldsFleeTargetPos,ReynoldsFleeSafeDistance>{
+        public void Execute(Entity entity, int index, ref Translation trans, ref ReynoldsMovementValues movement, [ReadOnly] ref HasReynoldsFleeTargetPos targetPos, [ReadOnly] ref ReynoldsFleeSafeDistance safeDist){
             float3 move = trans.Value - targetPos.targetPos; // from the target to the agent
             if(math.distance(targetPos.targetPos, trans.Value) < safeDist.safeDistance){
                 //get a vector from target through the agent to the safe distance (a point in the safe distance sphere in the same direction as the direction from target to agent)
                 move = (math.normalize(move) * safeDist.safeDistance)
                         - trans.Value; // then get the vector from the agent to the point on the safe distance sphere
                         // this makes the flee movement greater the closer the agent is to the flee target
-                fleeMovement.movement = move;
+                movement.fleeMovement = move;
             }
             else{
-                fleeMovement.movement = float3.zero;
+                movement.fleeMovement = float3.zero;
             }
             
         }
