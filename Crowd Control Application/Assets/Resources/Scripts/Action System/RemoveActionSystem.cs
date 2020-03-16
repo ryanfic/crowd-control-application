@@ -6,41 +6,31 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 
+// Removes an action from the action queue
 public class RemoveActionSystem : JobComponentSystem {
- private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
-    private static float tolerance = 0.1f;
+    private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
 
-    //[ExcludeComponent(typeof(StoreWayPoints),typeof(ChangeAction),typeof(RemoveAction))] // don't follow waypoints if the information is being stored/changed
-    private struct RemoveActionJob : IJobForEachWithEntity_EB<Action> {
+    private struct RemoveActionJob : IJobForEachWithEntity_EBC<Action,RemoveAction> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-        public void Execute(Entity entity, int index, DynamicBuffer<Action> actions){
+        public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref RemoveAction removal){
+            Debug.Log("Removing");
             if(actions.Length > 0){ //if there are actions
-                if(actions[0].id == data.id){ //if the current action is the same as the action in the first position 
-                    if(math.distance(trans.Value, wayPoints[data.curPointNum].value) < tolerance){ // if the entity is within tolerance of the waypoint
-                        if(data.curPointNum < wayPoints.Length - 1){ // if the entity has at least one more waypoint to follow
-                            data.curPointNum++; // the index increases by one
-                            seek.targetPos = wayPoints[data.curPointNum].value;// move to the next point
-                        }
-                        else { // if there are no more waypoints
-                            //entityCommandBuffer.DestroyEntity(actions[0].dataHolder);//demolish the storage entity
-                            entityCommandBuffer.AddComponent<RemoveAction>(index, entity, new RemoveAction { // add a component that tells the system to remove the action from the queue
-                                id = data.id
-                            }); 
-                            //remove the current follow waypoints action
-                        }      
-                    }
+                int i = 0;
+                while(i < actions.Length && actions[index].id != removal.id){ // find the index of the action
+                    i++;
                 }
-                else{ // if there are actions but this action is not the right one
-                    entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed
-                        fromId = data.id
+                if(index != actions.Length){ // if the action was found before the end of the buffer
+                    ActionType aType = actions[i].type; // get the type of the action that was removed
+                    entityCommandBuffer.DestroyEntity(index, actions[i].dataHolder); // delete the data holder for the action
+                    actions.RemoveAt(i); //remove the action
+                    entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{ // tell the system that the current action should be changed
+                        fromId = removal.id,
+                        fromType = aType,
+                        storeData = 0 // the information should not be stored
                     });
                 }
             }
-            else{ // if there are no actions in the action queue
-                entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed (will remove action)
-                        fromId = data.id
-                    });
-            }
+            entityCommandBuffer.RemoveComponent<RemoveAction>(index,entity); // remove this component
         }
     }
 
@@ -50,10 +40,10 @@ public class RemoveActionSystem : JobComponentSystem {
     }
     protected override JobHandle OnUpdate(JobHandle inputDeps){
 
-        FollowWayPointsJob followJob = new FollowWayPointsJob{ // creates the "follow waypoints" job
+        RemoveActionJob removeJob = new RemoveActionJob{ // creates the "follow waypoints" job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
-        JobHandle jobHandle = followJob.Schedule(this, inputDeps);
+        JobHandle jobHandle = removeJob.Schedule(this, inputDeps);
 
         commandBufferSystem.AddJobHandleForProducer(jobHandle); // tell the system to execute the command buffer after the job has been completed
 

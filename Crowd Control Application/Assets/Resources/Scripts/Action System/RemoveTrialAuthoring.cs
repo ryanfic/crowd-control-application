@@ -4,9 +4,11 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
 
+
 //Handle the conversion of a buffer holding GameObject to an Entity (Manually)
-public class FetchTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
+public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
+
     public int[] priorites;
     public float[] times;
     public float3[] positions1;
@@ -21,7 +23,7 @@ public class FetchTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             tempBuff.Add(new WayPoint{value = location});
         }
         dstManager.AddComponentData<FollowWayPointsStorage>(holder, new FollowWayPointsStorage {
-                id = 11,
+                id = 0,
                 curPointNum = 0
             });// add the FollowWayPointsAction to the crowd agent
 
@@ -68,16 +70,14 @@ public class FetchTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     
                 }); // the Values (in the buffer) are the values in the array
         }
-        dstManager.AddComponentData<FollowWayPointsAction>(entity, new FollowWayPointsAction {
-                id = 44,
-                curPointNum = 1
-            });// add the FollowWayPointsAction to the crowd agent
+
 
         dstManager.AddComponentData<FetchWayPoints>(entity, new FetchWayPoints {
-                id = 11,
+                id = 0,
                 dataHolder = holder
             });// add the FollowWayPointsAction to the crowd agent
 
         
     }
+
 }
