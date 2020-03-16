@@ -1,12 +1,10 @@
 ﻿using Unity.Entities;
 using Unity.Mathematics;
 
-public enum Season{
-    Winter,
-    Summer,
-    Spring,
-    Fall
-}
+/*public enum ActionTypes{
+    Follow_Waypoints,
+    Go_Home
+}*/
 
 public struct Neato{
     public int thing;
@@ -18,13 +16,11 @@ public struct PriorityElement : IBufferElementData{
     public int message;
     public float timeAdded;
 
-    public Season season;
-    public Neato neato;
     public Entity WPHolder;
     
 } 
 
-public struct WayPoint : IBufferElementData{
+/*public struct WayPoint : IBufferElementData{
     public float3 point;
 }
-
+*/

@@ -5,7 +5,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 
 //Handle the conversion of a buffer holding GameObject to an Entity (Manually)
-public class PriorityElementAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
+public class TrialActionAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
     public int[] priorites;
     //public int[] messages;
@@ -44,7 +44,7 @@ public class PriorityElementAuthoring : MonoBehaviour, IConvertGameObjectToEntit
         
         
         
-        DynamicBuffer<PriorityElement> dynamicBuffer = dstManager.AddBuffer<PriorityElement>(entity); // add a buffer to the entity
+        DynamicBuffer<Action> dynamicBuffer = dstManager.AddBuffer<Action>(entity); // add a buffer to the entity
         //wpBuffer.Add(new WayPoint {point = float3.zero} );
         for(int i = 0; i < priorites.Length; i++){
             int curPriority = priorites[i];
@@ -59,7 +59,7 @@ public class PriorityElementAuthoring : MonoBehaviour, IConvertGameObjectToEntit
             while(pos < dynamicBuffer.Length && curPriority <= dynamicBuffer[pos].priority){
                 if(curPriority == dynamicBuffer[pos].priority){ // if the current priorities are the same
                     //compare the times
-                    if(curTime >= dynamicBuffer[pos].timeAdded){ // if the current elements time is greater than the other element's time, this element should go later
+                    if(curTime >= dynamicBuffer[pos].timeCreated){ // if the current elements time is greater than the other element's time, this element should go later
                         pos++;
                     }
                     else 
@@ -74,13 +74,13 @@ public class PriorityElementAuthoring : MonoBehaviour, IConvertGameObjectToEntit
             //add the element at that location
             dynamicBuffer.Insert( 
                 pos,
-                new PriorityElement {
+                new Action {
+                    id = i,
                     priority = priorites[i],
-                    message = i,
-                    timeAdded = times[i],
-                    //season = Season.Fall,
-                    //neato = new Neato{thing = 1}
-                    WPHolder = holders[i] //attach the entity holding the waypoints to the action
+                    type = ActionType.Follow_WayPoints,
+                    timeCreated = times[i],
+
+                    dataHolder = holders[i],
                     
                 }); // the Values (in the buffer) are the values in the array
         }
