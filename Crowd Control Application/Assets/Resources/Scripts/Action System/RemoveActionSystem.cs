@@ -13,7 +13,6 @@ public class RemoveActionSystem : JobComponentSystem {
     private struct RemoveActionJob : IJobForEachWithEntity_EBC<Action,RemoveAction> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref RemoveAction removal){
-            Debug.Log("Removing");
             if(actions.Length > 0){ //if there are actions
                 int i = 0;
                 while(i < actions.Length && actions[index].id != removal.id){ // find the index of the action
@@ -25,8 +24,7 @@ public class RemoveActionSystem : JobComponentSystem {
                     actions.RemoveAt(i); //remove the action
                     entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{ // tell the system that the current action should be changed
                         fromId = removal.id,
-                        fromType = aType,
-                        storeData = 0 // the information should not be stored
+                        fromType = aType
                     });
                 }
             }

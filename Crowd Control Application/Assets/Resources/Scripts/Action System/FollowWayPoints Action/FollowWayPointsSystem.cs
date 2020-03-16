@@ -24,6 +24,7 @@ public class FollowWayPointsSystem : JobComponentSystem
                         }
                         else { // if there are no more waypoints
                             //entityCommandBuffer.DestroyEntity(actions[0].dataHolder);//demolish the storage entity
+                            Debug.Log("Got to last point");
                             entityCommandBuffer.AddComponent<RemoveAction>(index, entity, new RemoveAction { // add a component that tells the system to remove the action from the queue
                                 id = data.id
                             }); 
@@ -32,18 +33,27 @@ public class FollowWayPointsSystem : JobComponentSystem
                     }
                 }
                 else{ // if there are actions but this action is not the right one
+                    int i = 0;
+                    while(i < actions.Length && actions[i].id != data.id){ // find the location of the action in the actions queue
+                        i++;
+                    }
+                    if(i < actions.Length){ // if the action was found in the queue
+                        entityCommandBuffer.AddComponent<StoreWayPoints>(index, entity, new StoreWayPoints{ // store the data
+                            id = data.id,
+                            dataHolder = actions[i].dataHolder,
+                            curPointNum = data.curPointNum
+                        });
+                    }
                     entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed
                         fromId = data.id,
-                        fromType = ActionType.Follow_WayPoints,
-                        storeData = 1
+                        fromType = ActionType.Follow_WayPoints
                     });
                 }
             }
             else{ // if there are no actions in the action queue
                 entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed (will remove action)
                         fromId = data.id,
-                        fromType = ActionType.Follow_WayPoints,
-                        storeData = 0
+                        fromType = ActionType.Follow_WayPoints
                     });
             }
         }
