@@ -4,9 +4,7 @@ using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
 
-
-//Handle the conversion of a buffer holding GameObject to an Entity (Manually)
-public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
+public class ChangeTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
 
     public int[] priorites;
@@ -27,9 +25,9 @@ public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                 curPointNum = 0
             });// add the FollowWayPointsAction to the crowd agent
 
-        /*Entity holder2 = dstManager.CreateEntity();
+        Entity holder2 = dstManager.CreateEntity();
         dstManager.SetName(holder2, "Waypoint Holder 2");
-        DynamicBuffer<WayPoint> tempBuff2 = dstManager.AddBuffer<WayPoint>(holder);
+        DynamicBuffer<WayPoint> tempBuff2 = dstManager.AddBuffer<WayPoint>(holder2);
         tempBuff2.Add(new WayPoint{value = new float3(0,0,0)});
         dstManager.AddComponentData<FollowWayPointsStorage>(holder2, new FollowWayPointsStorage {
                 id = 1,
@@ -68,7 +66,21 @@ public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     break;
             }
             //add the element at that location
-            dynamicBuffer.Insert( 
+            if(i == 0){
+                dynamicBuffer.Insert( 
+                    pos,
+                    new Action {
+                        id = i,
+                        priority = priorites[i],
+                        type = ActionType.Follow_WayPoints,
+                        timeCreated = times[i],
+
+                        dataHolder = holder,
+                        
+                    }); // the Values (in the buffer) are the values in the array
+            }
+            else if(i == 1){
+                dynamicBuffer.Insert( 
                 pos,
                 new Action {
                     id = i,
@@ -76,16 +88,23 @@ public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     type = ActionType.Follow_WayPoints,
                     timeCreated = times[i],
 
-                    dataHolder = holder,
+                    dataHolder = holder2,
                     
                 }); // the Values (in the buffer) are the values in the array
+            }
+            
         }
 
-
-        dstManager.AddComponentData<FetchWayPoints>(entity, new FetchWayPoints {
-                id = 0,
-                dataHolder = holder
-            });// add the FollowWayPointsAction to the crowd agent
+        dstManager.AddComponentData<CurrentAction>(entity, new CurrentAction{
+            id = 22,
+            type = ActionType.Follow_WayPoints
+        });
+        dstManager.AddComponentData<FollowWayPointsAction>(entity, new FollowWayPointsAction{
+            id = 22,
+            curPointNum = 0
+        });
+        DynamicBuffer<WayPoint> wpBuffer = dstManager.AddBuffer<WayPoint>(entity); // add a buffer to the entity
+        wpBuffer.Add(new WayPoint {value = new float3(1,1,1)} );
 
         
     }

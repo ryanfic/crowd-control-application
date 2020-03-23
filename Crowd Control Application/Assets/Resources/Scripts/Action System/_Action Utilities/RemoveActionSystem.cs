@@ -19,13 +19,11 @@ public class RemoveActionSystem : JobComponentSystem {
                     i++;
                 }
                 if(index != actions.Length){ // if the action was found before the end of the buffer
+                    Debug.Log("Removing Action " + actions[i].id + "!");
                     ActionType aType = actions[i].type; // get the type of the action that was removed
                     entityCommandBuffer.DestroyEntity(index, actions[i].dataHolder); // delete the data holder for the action
                     actions.RemoveAt(i); //remove the action
-                    entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{ // tell the system that the current action should be changed
-                        fromId = removal.id,
-                        fromType = aType
-                    });
+                    entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{}); // tell the system that the current action should be changed
                 }
             }
             entityCommandBuffer.RemoveComponent<RemoveAction>(index,entity); // remove this component

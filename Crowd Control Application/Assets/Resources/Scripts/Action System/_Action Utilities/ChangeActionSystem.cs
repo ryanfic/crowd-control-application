@@ -6,18 +6,22 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 
+// A system for changing the current action done by an agent
 public class ChangeActionSystem : JobComponentSystem {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
 
-    private struct ChangeActionJob : IJobForEachWithEntity_EBC<Action,ChangeAction> {
+    private struct ChangeActionJob : IJobForEachWithEntity_EBCC<Action,ChangeAction,CurrentAction> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-        public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref ChangeAction change){
-            switch (change.fromType){ // remove the component based on what we are changing from
+        public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, [ReadOnly] ref ChangeAction change, ref CurrentAction current){
+            switch (current.type){ // remove the component based on what we are changing from
                 case ActionType.Follow_WayPoints:
-                    changeFromFollowWayPoints(entity, index, actions, ref change, ref entityCommandBuffer);
+                    changeFromFollowWayPoints(entity, index, actions, ref current, ref entityCommandBuffer);
                     break;
                 case ActionType.Go_Home:
                     // Do something based on going home
+                    break;
+                default:
+                    // Do something based on there being no current action
                     break;
             }
             if(actions.Length > 0){ //if there are actions, add another action
@@ -28,6 +32,9 @@ public class ChangeActionSystem : JobComponentSystem {
                             id = actions[0].id,
                             dataHolder = holder
                         });
+                        current.id = actions[0].id;
+                        current.type = ActionType.Follow_WayPoints;
+                        Debug.Log("Changing to Action " + actions[0].id + "!");
                         break;
                     case ActionType.Go_Home:
                         // Do something based on going home
@@ -36,9 +43,14 @@ public class ChangeActionSystem : JobComponentSystem {
                 
 
             }
+            else { // if there are no more actions to do
+                current.id = -1; // set id to a nonsense value
+                current.type = ActionType.No_Action; // Tell the system that there is no current action
+
+            }
             entityCommandBuffer.RemoveComponent<ChangeAction>(index,entity); // remove this component to show that there is no need to change the action anymore
         }
-        private void changeFromFollowWayPoints(Entity entity, int index, DynamicBuffer<Action> actions, ref ChangeAction change, ref EntityCommandBuffer.Concurrent eCommandBuffer){
+        private void changeFromFollowWayPoints(Entity entity, int index, DynamicBuffer<Action> actions, ref CurrentAction current, ref EntityCommandBuffer.Concurrent eCommandBuffer){
             eCommandBuffer.RemoveComponent<FollowWayPointsAction>(index, entity); // remove the follow way points action from the agent
             eCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index,entity); // make it so the agent doesn't move
             DynamicBuffer<WayPoint> wp = eCommandBuffer.SetBuffer<WayPoint>(index, entity);

@@ -2,7 +2,8 @@
 
 public enum ActionType {
     Follow_WayPoints,
-    Go_Home
+    Go_Home,
+    No_Action
 }
 
 [InternalBufferCapacity(5)]

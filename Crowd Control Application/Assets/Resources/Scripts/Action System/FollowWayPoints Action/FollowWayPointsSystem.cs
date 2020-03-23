@@ -33,6 +33,7 @@ public class FollowWayPointsSystem : JobComponentSystem
                     }
                 }
                 else{ // if there are actions but this action is not the right one
+                Debug.Log("Gotta change!");
                     int i = 0;
                     while(i < actions.Length && actions[i].id != data.id){ // find the location of the action in the actions queue
                         i++;
@@ -44,17 +45,14 @@ public class FollowWayPointsSystem : JobComponentSystem
                             curPointNum = data.curPointNum
                         });
                     }
-                    entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed
-                        fromId = data.id,
-                        fromType = ActionType.Follow_WayPoints
-                    });
+                    entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction {}); //signify that the action should be changed
+                    
                 }
             }
             else{ // if there are no actions in the action queue
-                entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction { //signify that the action should be changed (will remove action)
-                        fromId = data.id,
-                        fromType = ActionType.Follow_WayPoints
-                    });
+                Debug.Log("Nothin left!");
+                entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction {}); //signify that the action should be changed (will remove action)
+                    
             }
         }
     }
