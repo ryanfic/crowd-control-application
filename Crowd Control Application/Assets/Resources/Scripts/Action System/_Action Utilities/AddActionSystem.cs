@@ -29,7 +29,7 @@ public class AddActionSystem : JobComponentSystem {
                 else
                     break;
             }
-            if(index == 0){ // if the action was added at the start of the buffer
+            if(pos == 0){ // if the action was added at the start of the buffer
                 Debug.Log("Added to start!");
                 entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{}); // tell the system that the current action should be changed
             }

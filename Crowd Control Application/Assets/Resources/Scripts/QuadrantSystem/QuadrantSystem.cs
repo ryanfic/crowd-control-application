@@ -25,6 +25,12 @@ public struct QuadrantData{
     public float3 position;
     public QuadrantEntity quadrantEntity;
 }
+
+public struct CrowdQuadrantData{
+    public Entity entity;
+    public float3 position;
+    public DynamicBuffer<Action> actions;
+}
 public class QuadrantSystem : ComponentSystem
 {   
     //NativeMultiHashMap is for storing the quadrants
