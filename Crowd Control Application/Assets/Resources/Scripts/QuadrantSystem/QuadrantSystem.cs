@@ -26,17 +26,14 @@ public struct QuadrantData{
     public QuadrantEntity quadrantEntity;
 }
 
-public struct CrowdQuadrantData{
-    public Entity entity;
-    public float3 position;
-    public DynamicBuffer<Action> actions;
-}
+
 public class QuadrantSystem : ComponentSystem
 {   
     //NativeMultiHashMap is for storing the quadrants
     //quadrants need multiple things (values)
     //keys are ints, and it holds Entity s
     public static NativeMultiHashMap <int, QuadrantData> quadrantMultiHashMap;
+
     private const int quadrantDimMax = 1000; // The maximum amount of quadrants you would expect
                                             // used in the hashMap
     public const int quadrantZMultiplier = quadrantDimMax*quadrantDimMax;
@@ -103,6 +100,9 @@ public class QuadrantSystem : ComponentSystem
         }
     }
 
+
+
+
     /*
         When the Quadrant System is created
     */
@@ -120,6 +120,7 @@ public class QuadrantSystem : ComponentSystem
         //calculate the number of entities we have to store (entities with translation component and QuadrantEntity component)
         EntityQuery entityQuery = GetEntityQuery(typeof(Translation), typeof(QuadrantEntity));
 
+
         
         //the length is calculated from above
         //NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap = new NativeMultiHashMap<int, QuadrantData>(entityQuery.CalculateLength(),Allocator.TempJob);
@@ -130,6 +131,7 @@ public class QuadrantSystem : ComponentSystem
         if(entityQuery.CalculateEntityCount() > quadrantMultiHashMap.Capacity){
             quadrantMultiHashMap.Capacity = entityQuery.CalculateEntityCount(); //Increase the hashmap to hold everything
         }
+
         //using jobs
         //Cycle through all entities and get their positions
         //selects all entities with a translation component and adds them to the hashmap
@@ -138,6 +140,9 @@ public class QuadrantSystem : ComponentSystem
         };
         JobHandle jobHandle = JobForEachExtensions.Schedule(setQuadrantDataHashMapJob, entityQuery);
         jobHandle.Complete();
+
+
+
 
         //Cycle through all entities and get their positions
         //selects all entities with a translation component

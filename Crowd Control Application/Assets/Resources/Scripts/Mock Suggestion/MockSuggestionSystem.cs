@@ -6,7 +6,7 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 
-public struct TQuadData{
+/*public struct TQuadData{
     public Entity entity;
     //public float3 position;
     //public QuadrantEntity quadrantEntity;
@@ -34,39 +34,39 @@ public class MockSuggestionSystem : JobComponentSystem {
                     } while(qMultiHashMap.TryGetNextValue(out quadData, ref iterator));
                 }
             }
-
-
-            
-            //if(time - suggestion.lastSuggestionTime > suggestion.frequency){ // if it has been longer than the frequency since the last suggestion
-                //writeMap.TryAdd(entity,new TQuadData{ entity = entity});
-                //Suggest
-                //Find all nearby crowd agents
-                //For each agent that is nearby:
-                    // get a random float (between 0 & 100), if it is bigger than (100 - Opinion), the agent is affected
-                    //If affected, check if action (by id) is in queue or is being added
-                        //if not in queue/ being added, add the follow waypoints action to the agent's actions queue
-                        //if in queue/being added, increase the priority of the action
-
-            //}
         }
     }
     protected override void OnCreate() {
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+
+        //Set up the MultiHashMap with data
         quadrantMultiHashMap = new NativeMultiHashMap<int, TQuadData>(1,Allocator.Persistent); // Instantiate the hashmap
         Entity ent = EntityManager.CreateEntity();//Create an entity for the multihash
-        EntityManager.AddBuffer<WayPoint>(ent);
+        DynamicBuffer<WayPoint> wp = EntityManager.AddBuffer<WayPoint>(ent);
         EntityManager.SetName(ent, "Bob");
+        wp.Add(new WayPoint{value = float3.zero});
         quadrantMultiHashMap.Add(1,new TQuadData{entity = ent}); //add TQuadData to hashmap
+
+        //Set up the HashMap - No data
         addHashMap = new NativeHashMap<int, TQuadData>(1, Allocator.Persistent);
         base.OnCreate();
+    }
+
+    protected override void OnDestroy(){
+        quadrantMultiHashMap.Dispose(); // Remove the hashmap
+        addHashMap.Dispose();
+        base.OnDestroy();
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps){
         addHashMap.Clear();
 
-        EntityQuery query = GetEntityQuery(typeof(MockSuggestionTag));
+        EntityQuery query = GetEntityQuery(typeof(MockSuggestionTag), typeof(WayPoint));
 
         NativeArray<Entity> sug = query.ToEntityArray(Allocator.TempJob);
+
+        BufferFromEntity<WayPoint> wpBuffFromEnt = GetBufferFromEntity<WayPoint>();
+        
 
         SuggestFollowWayPointsJob suggestJob = new SuggestFollowWayPointsJob{ // creates the change action job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer(),
@@ -86,8 +86,7 @@ public class MockSuggestionSystem : JobComponentSystem {
         
         if(addHashMap.TryGetValue(2, out quadData)){ // try to get the first element in the hashmap
             
-                Debug.Log("Entity: " + quadData.entity);
-
+                //Debug.Log("Entity : " + quadData.entity + ", Entity Pos: " + wpBuffFromEnt[quadData.entity][0].value);
         }
 
         sug.Dispose();
@@ -95,4 +94,4 @@ public class MockSuggestionSystem : JobComponentSystem {
         return jobHandle;
     }
 
-}
+}*/
