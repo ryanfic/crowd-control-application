@@ -28,6 +28,10 @@ public class FollowWayPointsSystem : JobComponentSystem
                             entityCommandBuffer.AddComponent<RemoveAction>(index, entity, new RemoveAction { // add a component that tells the system to remove the action from the queue
                                 id = data.id
                             }); 
+                            
+                            entityCommandBuffer.DestroyEntity(index,actions[0].dataHolder);
+                            entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index, entity);
+                            entityCommandBuffer.RemoveComponent<FollowWayPointsAction>(index, entity);
                             //remove the current follow waypoints action
                         }      
                     }
@@ -51,6 +55,8 @@ public class FollowWayPointsSystem : JobComponentSystem
             }
             else{ // if there are no actions in the action queue
                 Debug.Log("Nothin left!");
+                entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index, entity);
+                entityCommandBuffer.RemoveComponent<FollowWayPointsAction>(index, entity);
                 entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction {}); //signify that the action should be changed (will remove action)
                     
             }

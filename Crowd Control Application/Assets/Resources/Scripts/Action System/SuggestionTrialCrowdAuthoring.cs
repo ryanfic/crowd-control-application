@@ -35,7 +35,8 @@ public class SuggestionTrialCrowdAuthoring : MonoBehaviour, IConvertGameObjectTo
         dstManager.AddBuffer<Action>(entity);
         dstManager.AddComponentData<CurrentAction>(entity, new CurrentAction{
             id = -1,
-            type = ActionType.No_Action
+            type = ActionType.No_Action,
+            dataHolder = holder
         });
     }
 }
