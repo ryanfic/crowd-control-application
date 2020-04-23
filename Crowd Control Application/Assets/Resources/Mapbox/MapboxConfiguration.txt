@@ -1,0 +1,1 @@
+{"AccessToken":"pk.eyJ1IjoicnlhbmZpYyIsImEiOiJjazlkOWFpczEwMWJwM290Y3ZlcjFqYXlkIn0.ON8l-EMXs6NZnkRhAKyHGA","MemoryCacheSize":500,"FileCacheSize":25000,"DefaultTimeout":30,"AutoRefreshCache":false}

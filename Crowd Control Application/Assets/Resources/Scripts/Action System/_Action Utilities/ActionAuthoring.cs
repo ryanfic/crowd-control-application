@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
+using crowd_Actions;
 public class ActionAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
     //public float3[] positions;

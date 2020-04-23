@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
+using crowd_Actions;
 
 //Handle the conversion of a buffer holding GameObject to an Entity (Manually)
 public class TrialActionAuthoring : MonoBehaviour, IConvertGameObjectToEntity 

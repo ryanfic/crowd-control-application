@@ -5,6 +5,7 @@ using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+using crowd_Actions;
 
 public class SuggestFollowWayPointsSystem : JobComponentSystem {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else

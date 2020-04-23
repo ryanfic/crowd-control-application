@@ -1,4 +1,5 @@
 ﻿using Unity.Entities;
+using crowd_Actions;
 
 public struct CurrentAction : IComponentData {
     public int id; // the id of the action currently being performed

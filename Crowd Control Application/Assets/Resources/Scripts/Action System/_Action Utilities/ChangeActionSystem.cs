@@ -5,6 +5,7 @@ using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+using crowd_Actions;
 
 // A system for changing the current action done by an agent
 public class ChangeActionSystem : JobComponentSystem {
