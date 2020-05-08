@@ -38,7 +38,7 @@ public class QuadrantSystem : ComponentSystem
                                             // used in the hashMap
     public const int quadrantZMultiplier = quadrantDimMax*quadrantDimMax;
     public const int quadrantYMultiplier = quadrantDimMax;
-    private const int quadrantCellSize = 5;
+    private const int quadrantCellSize = 10;
     //given a position, calculate the hashmap key
     public static int GetPositionHashMapKey(float3 position){
         return (int) (math.floor(position.x / quadrantCellSize) 

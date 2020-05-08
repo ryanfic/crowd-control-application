@@ -10,7 +10,7 @@ using crowd_Actions;
 public class FollowWayPointsSystem : JobComponentSystem
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
-    private static float tolerance = 0.1f;
+    private static float tolerance = 10f;
 
     [ExcludeComponent(typeof(StoreWayPoints),typeof(ChangeAction),typeof(RemoveAction))] // don't follow waypoints if the information is being stored/changed
     private struct FollowWayPointsJob : IJobForEachWithEntity_EBBCCC<WayPoint,Action,Translation,FollowWayPointsAction,HasReynoldsSeekTargetPos> {
@@ -29,8 +29,6 @@ public class FollowWayPointsSystem : JobComponentSystem
                             entityCommandBuffer.AddComponent<RemoveAction>(index, entity, new RemoveAction { // add a component that tells the system to remove the action from the queue
                                 id = data.id
                             }); 
-                            
-                            entityCommandBuffer.DestroyEntity(index,actions[0].dataHolder);
                             entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index, entity);
                             entityCommandBuffer.RemoveComponent<FollowWayPointsAction>(index, entity);
                             //remove the current follow waypoints action

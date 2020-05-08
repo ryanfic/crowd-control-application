@@ -10,7 +10,7 @@ using crowd_Actions;
 public class GoHomeSystem : JobComponentSystem
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
-    private static float tolerance = 0.1f;
+    private static float tolerance = 2f;
 
     [ExcludeComponent(typeof(StoreWayPoints),typeof(ChangeAction),typeof(RemoveAction))] // don't go home if the information is being stored/changed
     private struct GoHomeJob : IJobForEachWithEntity_EBCCC<Action,Translation,GoHomeAction,HasReynoldsSeekTargetPos> {

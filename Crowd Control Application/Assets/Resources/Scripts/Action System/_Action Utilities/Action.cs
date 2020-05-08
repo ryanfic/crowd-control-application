@@ -3,6 +3,7 @@ namespace crowd_Actions{
     public enum ActionType {
         Follow_WayPoints,
         Go_Home,
+        Go_And_Wait,
         No_Action
     }
 

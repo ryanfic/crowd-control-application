@@ -16,15 +16,18 @@ public class RemoveActionSystem : JobComponentSystem {
         public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref RemoveAction removal){
             if(actions.Length > 0){ //if there are actions
                 int i = 0;
-                while(i < actions.Length && actions[index].id != removal.id){ // find the index of the action
+                while(i < actions.Length && actions[i].id != removal.id){ // find the index of the action
                     i++;
                 }
-                if(index != actions.Length){ // if the action was found before the end of the buffer
-                    Debug.Log("Removing Action " + actions[i].id + "!");
+                if(i < actions.Length){ // if the action was found before the end of the buffer
+                    Debug.Log("Removing Action " + "!");
                     ActionType aType = actions[i].type; // get the type of the action that was removed
                     entityCommandBuffer.DestroyEntity(index, actions[i].dataHolder); // delete the data holder for the action
                     actions.RemoveAt(i); //remove the action
                     entityCommandBuffer.AddComponent<ChangeAction>(index,entity, new ChangeAction{}); // tell the system that the current action should be changed
+                }
+                else{
+                    Debug.Log("Failed to remove " + "!");
                 }
             }
             entityCommandBuffer.RemoveComponent<RemoveAction>(index,entity); // remove this component

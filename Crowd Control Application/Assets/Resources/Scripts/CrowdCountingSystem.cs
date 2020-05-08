@@ -16,7 +16,7 @@ public class CrowdCountingSystem : JobComponentSystem {
 
         public void Execute(ref CrowdCounter counter){
             if((time - counter.lastCount) > counter.frequency){ // if the time since the last count is greater than the count frequency
-                Debug.Log("COUNT: " + crowdNumber + " AT " + time);// count
+                //Debug.Log("COUNT: " + crowdNumber + " AT " + time);// count
                 counter.lastCount = time;
 
                 StreamWriter sw = new StreamWriter("crowdflowdata.txt",true);
@@ -36,8 +36,8 @@ public class CrowdCountingSystem : JobComponentSystem {
         array.Dispose();
 
         CountJob countJob = new CountJob{ // creates the counting job
-            time = Time.time,
-            crowdNumber = crowdCount,
+            time = (Time.time-15),
+            crowdNumber = crowdCount*100,
         };
         JobHandle jobHandle = countJob.Schedule(this, inputDeps);
 

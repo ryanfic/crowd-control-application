@@ -38,6 +38,16 @@ public class ChangeActionSystem : JobComponentSystem {
                         current.dataHolder = actions[0].dataHolder;
                         Debug.Log("Changing to Action " + actions[0].id + "!");
                         break;
+                    case ActionType.Go_And_Wait:
+                        entityCommandBuffer.AddComponent<FetchGoToAndWaitData>(index, entity, new FetchGoToAndWaitData{ // tell the system to fetch the go home data for the action
+                            id = actions[0].id,
+                            dataHolder = holder
+                        });
+                        current.id = actions[0].id;
+                        current.type = ActionType.Go_And_Wait;
+                        current.dataHolder = actions[0].dataHolder;
+                        Debug.Log("Changing to Action " + actions[0].id + "!");
+                        break;
                 }
                 
 

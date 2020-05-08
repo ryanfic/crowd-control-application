@@ -39,12 +39,12 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
                     SuggestInQuadrant(hashMapKey, i); // Search the quadrant that the police agent is in
                     SuggestInQuadrant(hashMapKey + 1,i); // search the quadrant to the right
                     SuggestInQuadrant(hashMapKey - 1,i); // search the quadrant to the left
-                    SuggestInQuadrant(hashMapKey + QuadrantSystem.quadrantYMultiplier,i); // quadrant above
-                    SuggestInQuadrant(hashMapKey - QuadrantSystem.quadrantYMultiplier,i); // quadrant below
-                    SuggestInQuadrant(hashMapKey + 1 + QuadrantSystem.quadrantYMultiplier,i); // up right
-                    SuggestInQuadrant(hashMapKey - 1 + QuadrantSystem.quadrantYMultiplier,i); // up left
-                    SuggestInQuadrant(hashMapKey + 1 - QuadrantSystem.quadrantYMultiplier,i); // down right
-                    SuggestInQuadrant(hashMapKey -1 - QuadrantSystem.quadrantYMultiplier,i); // down left
+                    SuggestInQuadrant(hashMapKey + QuadrantSystem.quadrantZMultiplier,i); // quadrant above
+                    SuggestInQuadrant(hashMapKey - QuadrantSystem.quadrantZMultiplier,i); // quadrant below
+                    SuggestInQuadrant(hashMapKey + 1 + QuadrantSystem.quadrantZMultiplier,i); // up right
+                    SuggestInQuadrant(hashMapKey - 1 + QuadrantSystem.quadrantZMultiplier,i); // up left
+                    SuggestInQuadrant(hashMapKey + 1 - QuadrantSystem.quadrantZMultiplier,i); // down right
+                    SuggestInQuadrant(hashMapKey -1 - QuadrantSystem.quadrantZMultiplier,i); // down left
                     
                     entityCommandBuffer.SetComponent<SuggestFollowWayPointsAction>(suggesterArray[i],new SuggestFollowWayPointsAction{
                         id = suggestActionArray[i].id,
@@ -70,6 +70,7 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
                         float dist = math.distance(policePosition, quadData.position);
                         if(dist < suggestionRadius  && dist > 0.01f)  // if the crowd agent is within the suggestion radius
                         {
+                            Debug.Log("Suggesting To Agent!!");
                             Suggest(policeIndex, quadData.entity);
                         }
                     }
@@ -126,11 +127,17 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
                     dataHolder = holder
                 }); 
             }
+
+
+            //FOR SIMULATION PURPOSES REMOVE LATER
+            entityCommandBuffer.AddComponent<RemoveAction>(crowdAgent, new RemoveAction{ // Tell the agent to not stand and wait
+                id = 2
+            });
         }
 
         //Calculates the priority of the follow waypoints action
         private int CalculateActionPriority(Entity crowdAgent){
-            return 1;
+            return 4;
         }
     }
 

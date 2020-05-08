@@ -18,7 +18,7 @@ public class CrowdSpawner : MonoBehaviour
     void Start()
     {   
         string file = fileName + ".txt";
-        if(File.Exists(file)){ // if there is a 
+        if(File.Exists(file)){ // if there is a file to load from
             Invoke("DataSpawnCrowd",delay);
         }
         else{
@@ -65,39 +65,39 @@ public class CrowdSpawner : MonoBehaviour
         Debug.Log(output);*/
         for(int i = 0; i < xPartitions; i++){ // i is in the x direction
             for(int j = 0; j < zPartitions; j++){ // j is in the z direction
-                int type = availableTypes[((int)UnityEngine.Random.Range(0,availableTypes.Count))]; // choose a type
+                if(availableTypes.Count>0){
+                    int type = availableTypes[((int)UnityEngine.Random.Range(0,availableTypes.Count))]; // choose a type
                 
-                //Debug.Log("TYPE: " + type);
-                float xOffset = UnityEngine.Random.Range(-xScale/(2*xPartitions),xScale/(2*xPartitions));
-                float zOffset = UnityEngine.Random.Range(-zScale/(2*zPartitions),zScale/(2*zPartitions));
-                position = new Vector3( // create a vector based on which partition the agent is in
-                    (xOffset-xScale/2)+((i+0.5f)*xScale/xPartitions),
-                    0,
-                    (zOffset-zScale/2)+((j+0.5f)*zScale/zPartitions)
-                );
-                position = rotation * position; // rotate the vector
-                position += this.transform.position; // move the position to where the game object is
-                Object.Instantiate(prefabs[type], position,rotation); // create the crowd agent
-                numAgentsSpawned[type]++;
+                    //Debug.Log("TYPE: " + type);
+                    float xOffset = UnityEngine.Random.Range(-xScale/(2*xPartitions),xScale/(2*xPartitions));
+                    float zOffset = UnityEngine.Random.Range(-zScale/(2*zPartitions),zScale/(2*zPartitions));
+                    position = new Vector3( // create a vector based on which partition the agent is in
+                        (xOffset-xScale/2)+((i+0.5f)*xScale/xPartitions),
+                        0,
+                        (zOffset-zScale/2)+((j+0.5f)*zScale/zPartitions)
+                    );
+                    position = rotation * position; // rotate the vector
+                    position += this.transform.position; // move the position to where the game object is
+                    Object.Instantiate(prefabs[type], position,rotation); // create the crowd agent
+                    numAgentsSpawned[type]++;
 
-                types.Add(type); // add the type to the list
-                positions.Add(position); // add the position to the list
+                    types.Add(type); // add the type to the list
+                    positions.Add(position); // add the position to the list
 
-                //Check if we have reached the number of agents to spawn
-                if(numAgentsToSpawn[type] <= numAgentsSpawned[type]){
-                    availableTypes.Remove(type);// remove the type from the availableTypes
-                    Debug.Log("Removed " + type);
-                    /*output ="";
-                    for(int k = 0; k < availableTypes.Count; k++){
-                        if(k>0)
-                            output +=", ";
-                        output+= availableTypes[k];
+                    //Check if we have reached the number of agents to spawn
+                    if(numAgentsToSpawn[type] <= numAgentsSpawned[type]){
+                        availableTypes.Remove(type);// remove the type from the availableTypes
+                        Debug.Log("Removed " + type);
+                        /*output ="";
+                        for(int k = 0; k < availableTypes.Count; k++){
+                            if(k>0)
+                                output +=", ";
+                            output+= availableTypes[k];
+                        }
+                        Debug.Log(output);*/
                     }
-                    Debug.Log(output);*/
-
+                    //Debug.Log("Pos " + (i*10+j) + ": " +position);
                 }
-                
-                //Debug.Log("Pos " + (i*10+j) + ": " +position);
             }
         }
         WriteCrowdData(types,positions);
