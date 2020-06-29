@@ -57,7 +57,7 @@ public class GoToAndWaitSystem : JobComponentSystem
         base.OnCreate();
     }
     protected override JobHandle OnUpdate(JobHandle inputDeps){
-        float curTime = Time.deltaTime;
+        float curTime = Time.DeltaTime;
 
         GoHomeJob homeJob = new GoHomeJob{ // creates the "go home" job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
