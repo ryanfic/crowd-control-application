@@ -40,7 +40,7 @@ public class ECSBoidsHandler : MonoBehaviour
     
 
     private void Start() {
-        eManager = World.Active.EntityManager;
+        eManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         Vector3 gridCenter = new Vector3(0,0,0);
         int numCells = (int)Mathf.Ceil(((float)numAgentsToSpawn)/agentsPerCell); // Calculate number of cells needed from the number of agents to spawn and agents per cell

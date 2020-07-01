@@ -10,8 +10,8 @@ public class SeekerMoveToTargetSystem : ComponentSystem
     
     protected override void OnUpdate(){
         Entities.ForEach((Entity seeker, ref HasTarget hasTar, ref Translation transl)=>{
-            if(World.Active.EntityManager.Exists(hasTar.targetEntity)){ //if the target still exists
-                Translation targetTranslation = World.Active.EntityManager.GetComponentData<Translation>(hasTar.targetEntity);
+            if(World.DefaultGameObjectInjectionWorld.EntityManager.Exists(hasTar.targetEntity)){ //if the target still exists
+                Translation targetTranslation = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<Translation>(hasTar.targetEntity);
         
                 float3 targetDir = math.normalize(targetTranslation.Value - transl.Value); //the direction for movement
                 float moveSpeed = 5f; //movement speed

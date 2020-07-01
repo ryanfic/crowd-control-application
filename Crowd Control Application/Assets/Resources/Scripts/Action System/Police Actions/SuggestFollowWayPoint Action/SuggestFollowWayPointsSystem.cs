@@ -5,6 +5,7 @@ using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
+//using Unity.Core;
 using crowd_Actions;
 
 public class SuggestFollowWayPointsSystem : JobComponentSystem {
@@ -164,7 +165,7 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
             quadrantMultiHashMap = QuadrantSystem.quadrantMultiHashMap,
             actionBufferArray = GetBufferFromEntity<Action>(),
             wayPointBufferArray = GetBufferFromEntity<WayPoint>(),
-            time = Time.time
+            time = (float)Time.ElapsedTime
         };
         JobHandle jobHandle = suggestJob.Schedule(inputDeps);
         jobHandle.Complete();

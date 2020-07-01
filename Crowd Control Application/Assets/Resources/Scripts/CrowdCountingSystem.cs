@@ -36,7 +36,7 @@ public class CrowdCountingSystem : JobComponentSystem {
         array.Dispose();
 
         CountJob countJob = new CountJob{ // creates the counting job
-            time = (Time.time-15),
+            time = ((float)Time.ElapsedTime-15),
             crowdNumber = crowdCount*100,
         };
         JobHandle jobHandle = countJob.Schedule(this, inputDeps);

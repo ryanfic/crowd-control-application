@@ -23,10 +23,12 @@ public class CloneColliders : MonoBehaviour
         Debug.Log("Finished Waiting");
 
         //Copy all of the game objects into entities
-
+        int i = 0;
         UnityEngine.MeshCollider[] meshes = GetComponentsInChildren<UnityEngine.MeshCollider>(this.transform.gameObject);
         foreach(UnityEngine.MeshCollider mesh in meshes){
+            Debug.Log("Converting " + i);
             CopyToEntity(mesh.gameObject);
+            i++;
         }
     }
 
@@ -39,8 +41,33 @@ public class CloneColliders : MonoBehaviour
             vertices[i] = m.vertices[i]; // get the vertices
         }
 
+        // Convert an array of ints to an array of int3 (has 3 ints)
+        int3[] indices = new int3[m.triangles.Length/3]; //set up the array of int3
+        for(int i = 0; i < m.triangles.Length/3; i++){
+            int x = 0;
+            int y = 0;
+            int z = 0;
+            for(int j = 0; j < 3; j++){ //assign the 3 values of the triangle
+                int toAdd = m.triangles[3*i+j]; // get the next index to add
+                switch (j) 
+                {                               //add the index based on the position
+                    case 0:
+                        x = toAdd;
+                        break;
+                    case 1:
+                        y = toAdd;
+                        break;
+                    case 2:
+                        z = toAdd;
+                        break;
+                }
+            }
+            int3 newInt3 = new int3(x,y,z); // create a new int3 based on the values obtained
+            indices[i] = newInt3;// add the int3 to the int3 array
+        }
+
         NativeArray<float3> nativeVertices = new NativeArray<float3>(vertices,Allocator.Temp);
-        NativeArray<int> nativeIndices = new NativeArray<int>(m.triangles,Allocator.Temp);
+        NativeArray<int3> nativeIndices = new NativeArray<int3>(indices,Allocator.Temp);
         float3 pos = obj.transform.position;
         Quaternion rot = obj.transform.rotation;
 

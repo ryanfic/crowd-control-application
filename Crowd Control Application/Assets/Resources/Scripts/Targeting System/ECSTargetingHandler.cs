@@ -17,7 +17,7 @@ public class ECSTargetingHandler : MonoBehaviour
     private static EntityManager eManager;
 
     private void Start() {
-        eManager = World.Active.EntityManager;
+        eManager = World.DefaultGameObjectInjectionWorld.EntityManager;
 
         for(int i = 0; i < 2000; i++){
             SpawnSeekerEntity();
@@ -104,9 +104,9 @@ public struct HasTarget : IComponentData{ //Used in Seekers attempt to find targ
 public class HasTargetDebug : ComponentSystem{
     protected override void OnUpdate(){
         Entities.ForEach((Entity entity, ref Translation translation, ref HasTarget hasTarget)=>{
-            if(World.Active.EntityManager.Exists(hasTarget.targetEntity)){ //if the target still exists
+            if(World.DefaultGameObjectInjectionWorld.EntityManager.Exists(hasTarget.targetEntity)){ //if the target still exists
                 //Cannot just access the position of the targetEntity via HasTarget, need to use the Entity Manager
-                Translation targetTranslation = World.Active.EntityManager.GetComponentData<Translation>(hasTarget.targetEntity);
+                Translation targetTranslation = World.DefaultGameObjectInjectionWorld.EntityManager.GetComponentData<Translation>(hasTarget.targetEntity);
                 Debug.DrawLine(translation.Value, targetTranslation.Value);
             }
         });
