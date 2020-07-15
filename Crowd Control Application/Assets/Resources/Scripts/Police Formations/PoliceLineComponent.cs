@@ -1,8 +1,8 @@
 ﻿using Unity.Entities;
 
-// To Test Accessing Buffers from another entity
+// To Label A Police Line
 [GenerateAuthoringComponent]
-public class PoliceLineComponent : IComponentData
+public struct PoliceLineComponent : IComponentData
 {
 
 }

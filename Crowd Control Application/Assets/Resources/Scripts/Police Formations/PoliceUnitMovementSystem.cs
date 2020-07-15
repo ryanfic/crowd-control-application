@@ -12,7 +12,7 @@ public class PoliceUnitMovementSystem : JobComponentSystem
         float deltaTime = Time.DeltaTime;
 
         JobHandle jobHandle = Entities
-            .WithAll<PoliceUnit>()
+            .WithAll<PoliceUnitComponent>()
             .ForEach((Entity policeSerial, ref Translation transl)=>{
                 float3 result = new float3(1,0,0);
                 transl.Value += result * deltaTime; //add movement to the translation            

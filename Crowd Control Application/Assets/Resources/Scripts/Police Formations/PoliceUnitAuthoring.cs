@@ -8,12 +8,76 @@ using Unity.Transforms;
 
 public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
-    public float thing;
-    
-    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
-        foreach (Transform child in transform)
-            print("Foreach loop: " + child);
+    public GameObject PoliceAgentGO;
+    public float LineSpacing;
+    public float LineWidth;
+    public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){ 
+        using (BlobAssetStore blobAssetStore = new BlobAssetStore()){
+            dstManager.AddComponent<PoliceUnitComponent>(entity);
+            Entity policeAgent = GameObjectConversionUtility.ConvertGameObjectHierarchy(PoliceAgentGO,
+                GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
+            dstManager.SetName(policeAgent,"Police Agent");
+
+            dstManager.SetName(entity,"Police Unit");
+            //float3 unitPos = dstManager.GetComponentData<Translation>(entity).Value;
+
+            //Set up the front line
+            Entity line1 = dstManager.Instantiate(policeAgent);
+            dstManager.SetName(line1,"Police Line 1");
+            dstManager.AddComponentData<Parent>(line1, new Parent{Value = entity});
+            dstManager.AddComponentData<LocalToParent>(line1, new LocalToParent());
+            dstManager.SetComponentData<Translation>(line1, new Translation{Value = new float3(0f,0f,LineSpacing)});
+            dstManager.AddComponent<FrontPoliceLineComponent>(line1);
+
+            //Set up the center line
+            Entity line2 = dstManager.Instantiate(policeAgent);
+            dstManager.SetName(line2,"Police Line 2");
+            dstManager.AddComponentData<Parent>(line2, new Parent{Value = entity});
+            dstManager.AddComponentData<LocalToParent>(line2, new LocalToParent());
+            dstManager.SetComponentData<Translation>(line2, new Translation{Value = new float3(0f,0f,0f)});
+            dstManager.AddComponent<CenterPoliceLineComponent>(line2);
+
+            //Set up the rear line
+            Entity line3 = dstManager.Instantiate(policeAgent);
+            dstManager.SetName(line3,"Police Line 3");
+            dstManager.AddComponentData<Parent>(line3, new Parent{Value = entity});
+            dstManager.AddComponentData<LocalToParent>(line3, new LocalToParent());
+            dstManager.SetComponentData<Translation>(line3, new Translation{Value = new float3(0f,0f,-LineSpacing)});
+            dstManager.AddComponent<RearPoliceLineComponent>(line3);
+
+            dstManager.AddComponentData<To3SidedBoxFormComponent>(line1, new To3SidedBoxFormComponent{
+                LineSpacing = LineSpacing,
+                LineWidth = LineWidth
+            });
+
+            dstManager.AddComponentData<To3SidedBoxFormComponent>(line2, new To3SidedBoxFormComponent{
+                LineSpacing = LineSpacing,
+                LineWidth = LineWidth
+            });
+
+            dstManager.AddComponentData<To3SidedBoxFormComponent>(line3, new To3SidedBoxFormComponent{
+                LineSpacing = LineSpacing,
+                LineWidth = LineWidth
+            });
+
+
+
+
+
+
+
             
+            //dstManager.SetComponentData<Child>(entity, new Child{Value = line1});
+            //DynamicBuffer<Child> unitChildren = dstManager.AddBuffer<Child>(entity);
+            //unitChildren.Add(new Child{Value = line1});
+            
+            
+
+            
+            //Debug.Log("Pos: " + unitPos);
+                    
+        }
+    }
         //dstManager.AddComponentData(entity, new Parent { Value = parentEntity});
 
         //Create a separate entity to hold the waypoint buffer
@@ -106,7 +170,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         });*/
 
         
-    }
+    
 
 }
 
