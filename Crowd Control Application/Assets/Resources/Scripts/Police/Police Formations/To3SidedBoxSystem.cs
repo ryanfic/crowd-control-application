@@ -66,20 +66,20 @@ public class To3SidedBoxSystem : JobComponentSystem {
         ToBoxFrontJob frontJob = new ToBoxFrontJob{ // creates the to 3 sided box front job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
-        JobHandle jobHandle1 = frontJob.Schedule(this, inputDeps);
+        JobHandle frontJobHandle = frontJob.Schedule(this, inputDeps);
         ToBoxCenterJob centerJob = new ToBoxCenterJob{
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
-        JobHandle jobHandle2 = centerJob.Schedule(this, jobHandle1);
+        JobHandle centerJobHandle = centerJob.Schedule(this, frontJobHandle);
         ToBoxRearJob rearJob = new ToBoxRearJob{
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
-        JobHandle jobHandle3 = rearJob.Schedule(this, jobHandle2);
+        JobHandle rearJobHandle = rearJob.Schedule(this, centerJobHandle);
         
 
-        commandBufferSystem.AddJobHandleForProducer(jobHandle3); // tell the system to execute the command buffer after the job has been completed
+        commandBufferSystem.AddJobHandleForProducer(rearJobHandle); // tell the system to execute the command buffer after the job has been completed
 
 
-        return jobHandle3;
+        return rearJobHandle;
     }
 }

@@ -8,17 +8,32 @@ using Unity.Transforms;
 
 public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
+
+    // With super funtime errors! TODO: FIX LATER!!
+    //Errors created when police unit is deleted
+    // Errors also because the blob asset store is not deleted (There is a memory leak), but if you delete the asset store then there is the aforementioned error...
     public GameObject PoliceAgentGO;
     public float LineSpacing;
     public float LineWidth;
+    public float MaxSpeed;
+    public float RotationSpeed;
+    public string UnitName;
+
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){ 
-        using (BlobAssetStore blobAssetStore = new BlobAssetStore()){
+        //using (BlobAssetStore blobAssetStore = new BlobAssetStore()){ // using causes a lot of errors when it deletes the blobassetstore
+            BlobAssetStore blobAssetStore = new BlobAssetStore();
             dstManager.AddComponent<PoliceUnitComponent>(entity);
+            dstManager.AddComponentData<PoliceUnitMaxSpeed>(entity, new PoliceUnitMaxSpeed{
+                Value = MaxSpeed
+            });
+            dstManager.AddComponentData<PoliceUnitRotationSpeed>(entity, new PoliceUnitRotationSpeed{
+                Value = RotationSpeed
+            });
             Entity policeAgent = GameObjectConversionUtility.ConvertGameObjectHierarchy(PoliceAgentGO,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
-            dstManager.SetName(policeAgent,"Police Agent");
+            //dstManager.SetName(policeAgent,"Police Agent");
 
-            dstManager.SetName(entity,"Police Unit");
+            dstManager.SetName(entity,"Police Unit " + UnitName);
             //float3 unitPos = dstManager.GetComponentData<Translation>(entity).Value;
 
             //Set up the front line
@@ -45,7 +60,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             dstManager.SetComponentData<Translation>(line3, new Translation{Value = new float3(0f,0f,-LineSpacing)});
             dstManager.AddComponent<RearPoliceLineComponent>(line3);
 
-            dstManager.AddComponentData<To3SidedBoxFormComponent>(line1, new To3SidedBoxFormComponent{
+            /*dstManager.AddComponentData<To3SidedBoxFormComponent>(line1, new To3SidedBoxFormComponent{
                 LineSpacing = LineSpacing,
                 LineWidth = LineWidth
             });
@@ -58,9 +73,9 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             dstManager.AddComponentData<To3SidedBoxFormComponent>(line3, new To3SidedBoxFormComponent{
                 LineSpacing = LineSpacing,
                 LineWidth = LineWidth
-            });
+            });*/
 
-
+            dstManager.DestroyEntity(policeAgent);
 
 
 
@@ -76,7 +91,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             
             //Debug.Log("Pos: " + unitPos);
                     
-        }
+        //}
     }
         //dstManager.AddComponentData(entity, new Parent { Value = parentEntity});
 

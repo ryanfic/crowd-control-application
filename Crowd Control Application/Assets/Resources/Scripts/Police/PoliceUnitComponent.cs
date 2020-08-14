@@ -2,7 +2,7 @@
 
 // To Test moving a police line relative to the Police Unit
 //[GenerateAuthoringComponent]
-public class PoliceUnitComponent : IComponentData
+public struct PoliceUnitComponent : IComponentData
 {
 
 }
