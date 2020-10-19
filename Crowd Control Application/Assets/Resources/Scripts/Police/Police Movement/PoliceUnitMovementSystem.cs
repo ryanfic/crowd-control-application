@@ -27,7 +27,7 @@ public class PoliceUnitMovementSystem : JobComponentSystem
                 float3 direction = math.normalize((destination.Value - transl.Value));
                 quaternion turn = quaternion.LookRotationSafe(direction, new float3(0f,1f,0f));
                 float angle = math.degrees(AngleBetweenQuaternions(rot.Value,turn));
-                Debug.Log("Angle: " + angle);
+                //Debug.Log("Angle: " + angle);
                 if(math.distance(transl.Value,destination.Value) > moveTolerance  || angle > rotTolerance){
                     float3 result = (destination.Value - transl.Value) * deltaTime; // the direction of movement
                     if(math.distance(result,float3.zero) > speed.Value){// if the movement is faster than the max speed, cull the movement to match the max speed

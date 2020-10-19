@@ -6,7 +6,8 @@ using Unity.Mathematics;
 using Unity.Transforms;
 
 
-public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
+// An authoring script to create a police unit, used in the NSERC paper simulations
+public class NSERCPaperPoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity 
 {
     private enum PoliceLine{
         Front,
@@ -27,6 +28,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     public float MaxSpeed;
     public float RotationSpeed;
     public string UnitName;
+    public bool Is3SidedBox = false;
 
     private BlobAssetStore blobAssetStore;
 
@@ -49,6 +51,16 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                 LineLength = LineLength,
                 LineWidth = LineWidth
             });
+            if(Is3SidedBox){ // if the unit starts off as a 3 sided box
+                dstManager.AddComponentData<PoliceUnitMovementDestination>(entity, new PoliceUnitMovementDestination{
+                    Value = new float3(0f,0f,0f)
+                });
+            }
+            else{ // if the unit starts off as a loose cordon
+                dstManager.AddComponentData<PoliceUnitMovementDestination>(entity, new PoliceUnitMovementDestination{
+                    Value = new float3(0f,0f,((LineLength+LineWidth)/2-LineSpacing))
+                });
+            }
             Entity policeOfficer = GameObjectConversionUtility.ConvertGameObjectHierarchy(PoliceOfficerGO,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
             Entity policeLine = GameObjectConversionUtility.ConvertGameObjectHierarchy(PoliceLineGO,
@@ -66,6 +78,24 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
             //Set up the rear line
             Entity line3 = CreatePoliceLine(policeLine, policeOfficer, holderEntity, entity, dstManager, PoliceLine.Rear,3);
+
+            if(Is3SidedBox){
+                dstManager.AddComponentData<To3SidedBoxFormComponent>(line1, new To3SidedBoxFormComponent{ // add a component to make the unit change to a 3 sided box
+                    LineSpacing = LineSpacing,
+                    LineLength = LineLength,
+                    LineWidth = LineWidth
+                });
+                dstManager.AddComponentData<To3SidedBoxFormComponent>(line2, new To3SidedBoxFormComponent{ // add a component to make the unit change to a 3 sided box
+                    LineSpacing = LineSpacing,
+                    LineLength = LineLength,
+                    LineWidth = LineWidth
+                });
+                dstManager.AddComponentData<To3SidedBoxFormComponent>(line3, new To3SidedBoxFormComponent{ // add a component to make the unit change to a 3 sided box
+                    LineSpacing = LineSpacing,
+                    LineLength = LineLength,
+                    LineWidth = LineWidth
+                });
+            }
 
             dstManager.DestroyEntity(policeOfficer);
             dstManager.DestroyEntity(policeLine);
@@ -132,4 +162,3 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     }   
 
 }
-

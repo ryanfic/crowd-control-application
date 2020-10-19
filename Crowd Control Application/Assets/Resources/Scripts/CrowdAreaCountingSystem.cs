@@ -55,7 +55,7 @@ public class CrowdAreaCountingSystem : JobComponentSystem {
     protected override JobHandle OnUpdate(JobHandle inputDeps){
         float time = (float)Time.ElapsedTime;
         float frequency = 1f;
-        Debug.Log("Freq "+frequency+" diff " +(time - lastCountTime));
+        //Debug.Log("Freq "+frequency+" diff " +(time - lastCountTime));
         if((time - lastCountTime)>frequency){
             lastCountTime = time;
             int[] countArray = {0};

@@ -8,18 +8,18 @@ using Unity.Collections;
 
 
 // A system for changing the formation of a police unit to a 3 sided box
-public class ToCordonSystem : JobComponentSystem {
+public class ToLooseCordonSystem : JobComponentSystem {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
     private static float tolerance = 0.1f;
 
     // the job used when it is the front police line
-    private struct ToCordonFrontJob : IJobForEachWithEntity<ToCordonFormComponent,FrontPoliceLineComponent,Translation> {
+    private struct ToLooseCordonFrontJob : IJobForEachWithEntity<ToLooseCordonFormComponent,FrontPoliceLineComponent,Translation> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        public void Execute(Entity entity, int index, [ReadOnly] ref ToCordonFormComponent toCordon, [ReadOnly] ref FrontPoliceLineComponent frontLine, ref Translation trans){
+        public void Execute(Entity entity, int index, [ReadOnly] ref ToLooseCordonFormComponent toCordon, [ReadOnly] ref FrontPoliceLineComponent frontLine, ref Translation trans){
             float3 destination = new float3(0f,0f,toCordon.LineSpacing); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                entityCommandBuffer.RemoveComponent<ToCordonFormComponent>(index, entity); // remove the formation change component from the police line
+                entityCommandBuffer.RemoveComponent<ToLooseCordonFormComponent>(index, entity); // remove the formation change component from the police line
             }
             else{ // if not at the destination
                 trans.Value = destination; // move to the destination
@@ -27,13 +27,13 @@ public class ToCordonSystem : JobComponentSystem {
         }
     }
     // the job used when it is the center police line
-    private struct ToCordonCenterJob : IJobForEachWithEntity<ToCordonFormComponent,CenterPoliceLineComponent,Translation,Rotation> {
+    private struct ToLooseCordonCenterJob : IJobForEachWithEntity<ToLooseCordonFormComponent,CenterPoliceLineComponent,Translation,Rotation> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        public void Execute(Entity entity, int index, [ReadOnly] ref ToCordonFormComponent toCordon, [ReadOnly] ref CenterPoliceLineComponent centerLine, ref Translation trans, ref Rotation rot){
+        public void Execute(Entity entity, int index, [ReadOnly] ref ToLooseCordonFormComponent toCordon, [ReadOnly] ref CenterPoliceLineComponent centerLine, ref Translation trans, ref Rotation rot){
             float3 destination = new float3(0f,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                entityCommandBuffer.RemoveComponent<ToCordonFormComponent>(index, entity); // remove the formation change component from the police line
+                entityCommandBuffer.RemoveComponent<ToLooseCordonFormComponent>(index, entity); // remove the formation change component from the police line
             }
             else{ // if not at the destination
                 trans.Value = destination; // move to the destination
@@ -42,13 +42,13 @@ public class ToCordonSystem : JobComponentSystem {
         }
     }
     // the job used when it is the front police line
-    private struct ToCordonRearJob : IJobForEachWithEntity<ToCordonFormComponent,RearPoliceLineComponent,Translation,Rotation> {
+    private struct ToLooseCordonRearJob : IJobForEachWithEntity<ToLooseCordonFormComponent,RearPoliceLineComponent,Translation,Rotation> {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        public void Execute(Entity entity, int index, [ReadOnly] ref ToCordonFormComponent toCordon, [ReadOnly] ref RearPoliceLineComponent rearLine, ref Translation trans, ref Rotation rot){
+        public void Execute(Entity entity, int index, [ReadOnly] ref ToLooseCordonFormComponent toCordon, [ReadOnly] ref RearPoliceLineComponent rearLine, ref Translation trans, ref Rotation rot){
             float3 destination = new float3(0f,0f,-toCordon.LineSpacing); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                entityCommandBuffer.RemoveComponent<ToCordonFormComponent>(index, entity); // remove the formation change component from the police line
+                entityCommandBuffer.RemoveComponent<ToLooseCordonFormComponent>(index, entity); // remove the formation change component from the police line
             }
             else{ // if not at the destination
                 trans.Value = destination; // move to the destination
@@ -63,15 +63,15 @@ public class ToCordonSystem : JobComponentSystem {
         base.OnCreate();
     }
     protected override JobHandle OnUpdate(JobHandle inputDeps){
-        ToCordonFrontJob frontJob = new ToCordonFrontJob{ // creates the to 3 sided box front job
+        ToLooseCordonFrontJob frontJob = new ToLooseCordonFrontJob{ // creates the to 3 sided box front job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
         JobHandle frontJobHandle = frontJob.Schedule(this, inputDeps);
-        ToCordonCenterJob centerJob = new ToCordonCenterJob{
+        ToLooseCordonCenterJob centerJob = new ToLooseCordonCenterJob{
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
         JobHandle centerJobHandle = centerJob.Schedule(this, frontJobHandle);
-        ToCordonRearJob rearJob = new ToCordonRearJob{
+        ToLooseCordonRearJob rearJob = new ToLooseCordonRearJob{
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
         };
         JobHandle rearJobHandle = rearJob.Schedule(this, centerJobHandle);

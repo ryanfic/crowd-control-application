@@ -9,7 +9,7 @@
                unitycodemonkey.com
     --------------------------------------------------
  */
-
+/*
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using Unity.Entities;
@@ -28,4 +28,4 @@ public class TestingSystem : ComponentSystem {
         }
     }
 
-}
+}*/

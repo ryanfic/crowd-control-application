@@ -17,7 +17,7 @@ public class To3SidedBoxSystem : JobComponentSystem {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
         public void Execute(Entity entity, int index, [ReadOnly] ref To3SidedBoxFormComponent toBox, [ReadOnly] ref FrontPoliceLineComponent frontLine, ref Translation trans){
-            float3 destination = new float3(0f,0f,toBox.LineWidth/2); // the front line should move ahead of the center point of the unit by half the width of a police line
+            float3 destination = new float3(0f,0f,(toBox.LineLength/2)+(toBox.LineWidth/2)); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
                 entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(index, entity); // remove the formation change component from the police line
             }
@@ -31,7 +31,7 @@ public class To3SidedBoxSystem : JobComponentSystem {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
         public void Execute(Entity entity, int index, [ReadOnly] ref To3SidedBoxFormComponent toBox, [ReadOnly] ref CenterPoliceLineComponent centerLine, ref Translation trans, ref Rotation rot){
-            float3 destination = new float3(-toBox.LineWidth/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
+            float3 destination = new float3((toBox.LineWidth-toBox.LineLength)/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
                 entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(index, entity); // remove the formation change component from the police line
             }
@@ -46,7 +46,7 @@ public class To3SidedBoxSystem : JobComponentSystem {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
         public void Execute(Entity entity, int index, [ReadOnly] ref To3SidedBoxFormComponent toBox, [ReadOnly] ref RearPoliceLineComponent rearLine, ref Translation trans, ref Rotation rot){
-            float3 destination = new float3(toBox.LineWidth/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
+            float3 destination = new float3((toBox.LineLength-toBox.LineWidth)/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
             if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
                 entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(index, entity); // remove the formation change component from the police line
             }

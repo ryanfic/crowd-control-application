@@ -1,0 +1,72 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!1 &300788909539220796
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 300788909539220797}
+  - component: {fileID: 300788909539220799}
+  - component: {fileID: 300788909539220798}
+  m_Layer: 0
+  m_Name: Police Unit
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &300788909539220797
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300788909539220796}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 0
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &300788909539220799
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300788909539220796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c532c1dbbd98bb84981455f934e2ce1c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  PoliceOfficerGO: {fileID: 5251747236646952476, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+    type: 3}
+  PoliceLineGO: {fileID: 3887096124931963568, guid: 2987ac86b4087ff4ebbb0d1be4a0e437,
+    type: 3}
+  LineHolder: {fileID: 9027910586261676215, guid: 41077769c9e739b4f97c8acc3b607921,
+    type: 3}
+  LineSpacing: 0.48
+  LineLength: 1.44
+  LineWidth: 0.24
+  OfficersPerLine: 6
+  MaxSpeed: 2
+  RotationSpeed: 2
+  UnitName: 1
+--- !u!114 &300788909539220798
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 300788909539220796}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ea7d7495833204790ba1d3a8755397f8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  ConversionMode: 0

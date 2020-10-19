@@ -17,7 +17,7 @@ using Unity.Physics.Systems;
 using Unity.Mathematics;
 using Unity.Collections;
 
-public class PipeHitSystem : JobComponentSystem {
+/*public class PipeHitSystem : JobComponentSystem {
 
     private struct PipeTrigger : ITriggerEventsJob {
 
@@ -93,7 +93,7 @@ Is that call no longer needed? Or did I just get lucky with the order of the Sys
         }).Run();
         //*/
 
-        return jobHandle;
-    }
+        //return jobHandle;
+    //}
 
-}
+//}

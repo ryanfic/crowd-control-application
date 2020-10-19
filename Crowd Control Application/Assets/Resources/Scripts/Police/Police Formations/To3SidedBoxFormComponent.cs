@@ -5,6 +5,7 @@
 public struct To3SidedBoxFormComponent : IComponentData
 {
     public float LineSpacing;
+    public float LineLength;
     public float LineWidth;
 }
 

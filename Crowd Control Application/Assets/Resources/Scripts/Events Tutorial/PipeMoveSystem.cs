@@ -7,7 +7,7 @@ using Unity.Collections;
 using UnityEngine;
 
 //Using DOTSEvents generic class
-public class PipeMoveSystem : JobComponentSystem {
+/*public class PipeMoveSystem : JobComponentSystem {
 
     public event EventHandler OnPipePassed;
 
@@ -50,7 +50,7 @@ public class PipeMoveSystem : JobComponentSystem {
 
         return jobHandle;
     }
-}
+}*/
 
 // Do not pause the software to capture the event, but capture the event on the next frame
 /*public class PipeMoveSystem : JobComponentSystem {

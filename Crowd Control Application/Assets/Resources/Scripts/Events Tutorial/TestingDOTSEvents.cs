@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unity.Entities;
 
-public class TestingDOTSEvents : MonoBehaviour
+/*public class TestingDOTSEvents : MonoBehaviour
 {
     // Start is called before the first frame update
     private void Start()
@@ -14,4 +14,4 @@ public class TestingDOTSEvents : MonoBehaviour
     private void TestingDOTSEvents_OnPipePassed(object sender, System.EventArgs e){
         Debug.Log("Pipe Event!");
     }
-}
+}*/

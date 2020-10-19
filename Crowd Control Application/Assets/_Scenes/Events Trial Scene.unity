@@ -150,7 +150,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 3
+  m_RootOrder: 4
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &178063958
 MonoBehaviour:
@@ -256,7 +256,7 @@ Transform:
   m_LocalScale: {x: 20, y: 20, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 4
+  m_RootOrder: 5
   m_LocalEulerAnglesHint: {x: 90, y: 0, z: 0}
 --- !u!114 &266265162
 MonoBehaviour:
@@ -297,11 +297,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 616885836}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -5, y: 0, z: 0}
+  m_LocalPosition: {x: -5, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 5
+  m_RootOrder: 6
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &616885838
 MonoBehaviour:
@@ -328,10 +328,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c532c1dbbd98bb84981455f934e2ce1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PoliceAgentGO: {fileID: 3887096124931963568, guid: 2987ac86b4087ff4ebbb0d1be4a0e437,
+  PoliceOfficerGO: {fileID: 5251747236646952476, guid: f1fb8b0875c536a4ca89919446ee7eb3,
     type: 3}
-  LineSpacing: 2
-  LineWidth: 5
+  PoliceLineGO: {fileID: 3887096124931963568, guid: 2987ac86b4087ff4ebbb0d1be4a0e437,
+    type: 3}
+  LineHolder: {fileID: 9027910586261676215, guid: 41077769c9e739b4f97c8acc3b607921,
+    type: 3}
+  LineSpacing: 0.48
+  LineLength: 1.44
+  LineWidth: 0.24
+  OfficersPerLine: 6
   MaxSpeed: 2
   RotationSpeed: 2
   UnitName: 1
@@ -355,7 +361,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!65 &658502202
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -428,7 +434,7 @@ Transform:
   m_LocalScale: {x: 10, y: 1, z: 5}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 7
+  m_RootOrder: 8
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &658502206
 MonoBehaviour:
@@ -545,7 +551,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 1
+  m_RootOrder: 2
   m_LocalEulerAnglesHint: {x: 50, y: -30, z: 0}
 --- !u!1 &1043478902
 GameObject:
@@ -672,7 +678,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 2
+  m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1252495683
 MonoBehaviour:
@@ -700,12 +706,12 @@ GameObject:
   - component: {fileID: 1391251813}
   - component: {fileID: 1391251812}
   m_Layer: 0
-  m_Name: Cube
+  m_Name: Crowd Spawner
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1391251812
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -793,11 +799,11 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1391251811}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 1, z: 2}
-  m_LocalScale: {x: 2, y: 1, z: 2}
+  m_LocalPosition: {x: 0, y: 1, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 8
+  m_RootOrder: 9
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1473392148
 GameObject:
@@ -842,10 +848,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c532c1dbbd98bb84981455f934e2ce1c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PoliceAgentGO: {fileID: 3887096124931963568, guid: 2987ac86b4087ff4ebbb0d1be4a0e437,
+  PoliceOfficerGO: {fileID: 5251747236646952476, guid: f1fb8b0875c536a4ca89919446ee7eb3,
     type: 3}
-  LineSpacing: 2
-  LineWidth: 5
+  PoliceLineGO: {fileID: 3887096124931963568, guid: 2987ac86b4087ff4ebbb0d1be4a0e437,
+    type: 3}
+  LineHolder: {fileID: 9027910586261676215, guid: 41077769c9e739b4f97c8acc3b607921,
+    type: 3}
+  LineSpacing: 0.48
+  LineLength: 1.44
+  LineWidth: 0.24
+  OfficersPerLine: 6
   MaxSpeed: 2
   RotationSpeed: 5
   UnitName: 2
@@ -857,9 +869,83 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1473392148}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 5, y: 0, z: 0}
+  m_LocalPosition: {x: 5, y: 1, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
-  m_RootOrder: 6
+  m_RootOrder: 7
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1001 &8446465770346272467
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 5251747236646952476, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_Name
+      value: Police Agent
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952476, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_IsActive
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_RootOrder
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5251747236646952481, guid: f1fb8b0875c536a4ca89919446ee7eb3,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: f1fb8b0875c536a4ca89919446ee7eb3, type: 3}

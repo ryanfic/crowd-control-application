@@ -153,7 +153,7 @@ public class QuadrantSystem : ComponentSystem
         });*/
         
         //Debug.Log(GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50)) + " Mouse position: " + MousePosition.GetMouseWorldPositionOnPlane(50));
-        DebugDrawQuadrant(MousePosition.GetMouseWorldPositionOnPlane(50));
+        //DebugDrawQuadrant(MousePosition.GetMouseWorldPositionOnPlane(50));
         //Debug.Log(GetEntityCountInHashMap(quadrantMultiHashMap,GetPositionHashMapKey(MousePosition.GetMouseWorldPositionOnPlane(50))));
         
         //quadrantMultiHashMap.Dispose();

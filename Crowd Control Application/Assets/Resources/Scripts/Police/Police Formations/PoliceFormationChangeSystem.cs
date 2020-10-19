@@ -8,22 +8,22 @@ using Unity.Collections;
 
 
 // A system for changing the formation of a police unit
-// Pressing 1 changes the unit(s) to cordon
+// Pressing 1 changes the unit(s) to loose cordon
 // Pressing 2 changes the unit9s) to 3-sided box
 public class PoliceFormationChangeSystem : JobComponentSystem {
     private bool OneDown;
     private bool TwoDown;
 
-    private float LineSpacing;
-    private float LineWidth;
+    //private float LineSpacing;
+    //private float LineWidth;
 
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
 
     protected override void OnCreate(){
         OneDown = false;
         TwoDown = false;
-        LineSpacing = 2f;
-        LineWidth = 5f;
+        //LineSpacing = 2f;
+        //LineWidth = 5f;
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         World.GetOrCreateSystem<UIController>().On1Down += OneDownResponse;
         World.GetOrCreateSystem<UIController>().On2Down += TwoDownResponse;
@@ -31,17 +31,18 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
 
     protected override JobHandle OnUpdate(JobHandle inputDeps){
         if(OneDown){  // if one is pressed, change units to cordon
-            float spacing = LineSpacing;
-            float width = LineWidth;
+            //float spacing = LineSpacing;
+            //float width = LineWidth;
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
             JobHandle cordonHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
-                .ForEach((Entity policeUnit, int entityInQueryIndex, in DynamicBuffer<Child> children)=>{
+                .ForEach((Entity policeUnit, int entityInQueryIndex, in PoliceUnitDimensions dimensions , in DynamicBuffer<Child> children)=>{
                         for(int i = 0; i < children.Length; i++){
                             //Debug.Log("Changing : " + i +"!");
-                            commandBuffer.AddComponent<ToCordonFormComponent>(entityInQueryIndex, children[i].Value, new ToCordonFormComponent{
-                                LineSpacing = spacing,
-                                LineWidth = width
+                            commandBuffer.AddComponent<ToLooseCordonFormComponent>(entityInQueryIndex, children[i].Value, new ToLooseCordonFormComponent{
+                                LineSpacing = dimensions.LineSpacing,
+                                LineLength = dimensions.LineLength,
+                                LineWidth = dimensions.LineWidth
                             }); // Add component to change to cordon
                         }
                 }).Schedule(inputDeps);
@@ -52,17 +53,18 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
             return cordonHandle;
         }
         else if(TwoDown){ // if two is pressed, change units to 3 sided box
-            float spacing = LineSpacing;
-            float width = LineWidth;
+            //float spacing = LineSpacing;
+            //float width = LineWidth;
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
             JobHandle boxHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
-                .ForEach((Entity policeUnit, int entityInQueryIndex, in DynamicBuffer<Child> children)=>{
+                .ForEach((Entity policeUnit, int entityInQueryIndex, in PoliceUnitDimensions dimensions, in DynamicBuffer<Child> children)=>{
                         for(int i = 0; i < children.Length; i++){
-                            Debug.Log("Changing : " + i +"!");
+                            //Debug.Log("Changing : " + i +"!");
                             commandBuffer.AddComponent<To3SidedBoxFormComponent>(entityInQueryIndex, children[i].Value, new To3SidedBoxFormComponent {
-                                LineSpacing = spacing,
-                                LineWidth = width
+                                LineSpacing = dimensions.LineSpacing,
+                                LineLength = dimensions.LineLength,
+                                LineWidth = dimensions.LineWidth
                             }); // Add component to change to cordon
                         }
                 }).Schedule(inputDeps);
