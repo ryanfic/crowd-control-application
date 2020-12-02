@@ -11,8 +11,11 @@ using Unity.Collections;
 // Pressing 1 changes the unit(s) to loose cordon
 // Pressing 2 changes the unit9s) to 3-sided box
 public class PoliceFormationChangeSystem : JobComponentSystem {
-    private bool OneDown;
-    private bool TwoDown;
+    //private bool OneDown;
+    //private bool TwoDown;
+
+    private bool ToLooseCordon;
+    private bool To3SidedBox;
 
     //private float LineSpacing;
     //private float LineWidth;
@@ -20,17 +23,26 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
 
     protected override void OnCreate(){
-        OneDown = false;
-        TwoDown = false;
+        ToLooseCordon = false;
+        To3SidedBox = false;
         //LineSpacing = 2f;
         //LineWidth = 5f;
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         World.GetOrCreateSystem<UIController>().On1Down += OneDownResponse;
         World.GetOrCreateSystem<UIController>().On2Down += TwoDownResponse;
+
+        //Obtain Voice Controller - There should only be one
+        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        if(voiceControllers.Length > 0){
+            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
+            voiceController.OnToLooseCordonVoiceCommand += VoiceToLooseCordonResponse;
+            voiceController.OnTo3SidedBoxVoiceCommand += VoiceTo3SidedBoxResponse;
+        }
+        //Debug.Log(Object.FindObjectsOfType<Camera>().Length);
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps){
-        if(OneDown){  // if one is pressed, change units to cordon
+        if(ToLooseCordon){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
@@ -46,13 +58,14 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
                             }); // Add component to change to cordon
                         }
                 }).Schedule(inputDeps);
-            OneDown = false;
+            //OneDown = false;
+            ToLooseCordon = false;
 
             commandBufferSystem.AddJobHandleForProducer(cordonHandle);
 
             return cordonHandle;
         }
-        else if(TwoDown){ // if two is pressed, change units to 3 sided box
+        else if(To3SidedBox){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
@@ -68,7 +81,7 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
                             }); // Add component to change to cordon
                         }
                 }).Schedule(inputDeps);
-            TwoDown = false;
+            To3SidedBox = false;
 
             commandBufferSystem.AddJobHandleForProducer(boxHandle);
 
@@ -80,13 +93,23 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
     }
 
     private void OneDownResponse(object sender, System.EventArgs e){
-        OneDown = true;
+        // if one is pressed, change units to loose cordon
+        ToLooseCordon = true;
         //Debug.Log("1 Pressed!");
     }
 
     private void TwoDownResponse(object sender, System.EventArgs eventArgs){
-        TwoDown = true;
+        // if two is pressed, change units to 3 sided box
+        To3SidedBox = true;
         //Debug.Log("2 Pressed!");
+    }
+
+    private void VoiceToLooseCordonResponse(object sender, System.EventArgs eventArgs){
+        ToLooseCordon = true;
+    }
+
+    private void VoiceTo3SidedBoxResponse(object sender, OnTo3SidedBoxEventArgs eventArgs){
+        To3SidedBox = true;
     }
 
 }

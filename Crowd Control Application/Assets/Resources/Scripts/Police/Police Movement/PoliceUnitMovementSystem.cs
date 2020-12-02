@@ -7,7 +7,7 @@ using Unity.Transforms;
 using Unity.Jobs;
 
 // Moves all selected police units to the given location
-public class PoliceUnitMovementSystem : JobComponentSystem
+public class PoliceUnitMovementSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
     private static float moveTolerance = 0.1f;
@@ -17,7 +17,7 @@ public class PoliceUnitMovementSystem : JobComponentSystem
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
         base.OnCreate();
     }
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         float deltaTime = Time.DeltaTime;
         EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
 
@@ -39,11 +39,12 @@ public class PoliceUnitMovementSystem : JobComponentSystem
                 else{
                     commandBuffer.RemoveComponent<PoliceUnitMovementDestination>(entityInQueryIndex, policeUnit); // remove the destination
                 }          
-            }).Schedule(inputDeps);
+            })
+            .ScheduleParallel(this.Dependency);
 
         commandBufferSystem.AddJobHandleForProducer(jobHandle);
 
-        return jobHandle;
+        this.Dependency = jobHandle;
     }
 
     // don't use a speed greater than 1
