@@ -7,59 +7,100 @@ using Unity.Burst;
 using Unity.Collections;
 using crowd_Actions;
 
-public class GoHomeSystem : JobComponentSystem
+public class GoHomeSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
     private static float tolerance = 2f;
 
-    [ExcludeComponent(typeof(StoreWayPoints),typeof(ChangeAction),typeof(RemoveAction))] // don't go home if the information is being stored/changed
-    private struct GoHomeJob : IJobForEachWithEntity_EBCCC<Action,Translation,GoHomeAction,HasReynoldsSeekTargetPos> {
+    private EntityQueryDesc goHomeQueryDec;
+
+    private struct GoHomeJob : IJobChunk {
         public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-        public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, [ReadOnly] ref Translation trans, ref GoHomeAction data, ref HasReynoldsSeekTargetPos seek){
-            if(actions.Length > 0){ //if there are actions
-                if(actions[0].id == data.id){ //if the current action is the same as the action in the first position 
-                    if(math.distance(trans.Value, seek.targetPos) < tolerance){ // if the entity is within tolerance of the home point
-                        //Remove the entity from the simulation (the crowd agent is going home)
-                        Debug.Log("Going home!");
-                        // loop through all of the actions in the agent's list, and destroy all of the data holder entities
-                        for(int i = 0; i < actions.Length; i++){
-                            entityCommandBuffer.DestroyEntity(index,actions[i].dataHolder);
-                        }  
-                        entityCommandBuffer.DestroyEntity(index, entity); // remove the crowd agent
+
+        [ReadOnly] public ArchetypeChunkEntityType entityType;
+        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> reynoldsType;
+        [ReadOnly] public ArchetypeChunkComponentType<GoHomeAction> goHomeType;
+        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
+        [ReadOnly] public ArchetypeChunkBufferType<Action> actionBufferType;
+
+        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
+            NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
+            NativeArray<HasReynoldsSeekTargetPos> reynoldsArray = chunk.GetNativeArray(reynoldsType);
+            NativeArray<GoHomeAction> goHomeArray = chunk.GetNativeArray(goHomeType);
+            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
+            BufferAccessor<Action> actionBuffers = chunk.GetBufferAccessor<Action>(actionBufferType);
+
+            for(int i = 0; i < chunk.Count; i++){   
+                Entity entity = entityArray[i];
+                DynamicBuffer<Action> actions = actionBuffers[i];
+                HasReynoldsSeekTargetPos seek = reynoldsArray[i];
+                GoHomeAction data = goHomeArray[i];
+                Translation trans = transArray[i];
+
+                if(actions.Length > 0){ //if there are actions
+                    if(actions[0].id == data.id){ //if the current action is the same as the action in the first position 
+                        if(math.distance(trans.Value, seek.targetPos) < tolerance){ // if the entity is within tolerance of the home point
+                            //Remove the entity from the simulation (the crowd agent is going home)
+                            Debug.Log("Going home!");
+                            // loop through all of the actions in the agent's list, and destroy all of the data holder entities
+                            for(int j = 0; j < actions.Length; j++){
+                                entityCommandBuffer.DestroyEntity(chunkIndex,actions[j].dataHolder);
+                            }  
+                            entityCommandBuffer.DestroyEntity(chunkIndex, entity); // remove the crowd agent
+                        }
+                    }
+                    else{ // if there are actions but this action is not the right one
+                    Debug.Log("Gotta change from going home!");
+                        //If there were data to store, this would be the point to do it
+                        entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(chunkIndex, entity); // remove the seek target pos from the crowd agent
+                        entityCommandBuffer.RemoveComponent<GoHomeAction>(chunkIndex, entity); // remove the going home action from the crowd agent
+                        entityCommandBuffer.AddComponent<ChangeAction>(chunkIndex, entity, new ChangeAction {}); //signify that the action should be changed
+                        
                     }
                 }
-                else{ // if there are actions but this action is not the right one
-                Debug.Log("Gotta change from going home!");
-                    //If there were data to store, this would be the point to do it
-                    entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index, entity); // remove the seek target pos from the crowd agent
-                    entityCommandBuffer.RemoveComponent<GoHomeAction>(index, entity); // remove the going home action from the crowd agent
-                    entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction {}); //signify that the action should be changed
-                    
+                else{ // if there are no actions in the action queue
+                    Debug.Log("Nothin left!");
+                    entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(chunkIndex, entity); // remove the seek target pos from the crowd agent
+                    entityCommandBuffer.RemoveComponent<GoHomeAction>(chunkIndex, entity); // remove the going home action from the crowd agent
+                    entityCommandBuffer.AddComponent<ChangeAction>(chunkIndex, entity, new ChangeAction {}); //signify that the action should be changed (will remove action)
+                        
                 }
-            }
-            else{ // if there are no actions in the action queue
-                Debug.Log("Nothin left!");
-                entityCommandBuffer.RemoveComponent<HasReynoldsSeekTargetPos>(index, entity); // remove the seek target pos from the crowd agent
-                entityCommandBuffer.RemoveComponent<GoHomeAction>(index, entity); // remove the going home action from the crowd agent
-                entityCommandBuffer.AddComponent<ChangeAction>(index, entity, new ChangeAction {}); //signify that the action should be changed (will remove action)
-                    
             }
         }
     }
 
     protected override void OnCreate() {
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        goHomeQueryDec = new EntityQueryDesc{
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<Action>(),
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadOnly<GoHomeAction>(),
+                ComponentType.ReadOnly<HasReynoldsSeekTargetPos>()
+            },
+            None = new ComponentType[]{ // don't go home if the information is being stored/changed
+                typeof(StoreWayPoints),
+                typeof(ChangeAction),
+                typeof(RemoveAction)
+            }
+        };
         base.OnCreate();
     }
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
+        EntityQuery goHomeQuery = GetEntityQuery(goHomeQueryDec); // query the entities
 
         GoHomeJob homeJob = new GoHomeJob{ // creates the "go home" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
+            entityType =  GetArchetypeChunkEntityType(),
+            reynoldsType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(true),
+            goHomeType = GetArchetypeChunkComponentType<GoHomeAction>(true),
+            translationType = GetArchetypeChunkComponentType<Translation>(true),
+            actionBufferType = GetArchetypeChunkBufferType<Action>(true)
         };
-        JobHandle jobHandle = homeJob.Schedule(this, inputDeps);
+        JobHandle jobHandle = homeJob.Schedule(goHomeQuery, this.Dependency);
 
         commandBufferSystem.AddJobHandleForProducer(jobHandle); // tell the system to execute the command buffer after the job has been completed
 
-        return jobHandle;
+        this.Dependency = jobHandle;
     }
 }

@@ -87,7 +87,7 @@ public class ECSEntitySpawner : MonoBehaviour
             typeof(RenderMesh),
             //typeof(Scale),
             typeof(Target),
-            typeof(QuadrantEntity)
+            typeof(MovingQuadrantEntity)
         );
         SetEntityComponentData(en, new float3(pos.x, pos.y, pos.z), entityMesh, entityMaterial); //set component data
         //eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity

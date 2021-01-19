@@ -64,8 +64,8 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
                 AvoidanceWeight = this.avoidanceWeight,
                 CohesionRadius = this.cohesionRadius,
                 CohesionWeight = this.cohesionWeight});
-            eManager.AddComponent<QuadrantEntity>(entity);// add the quadrant entity component, used to sort the agent for finding nearby agents
-            eManager.SetComponentData(entity, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Crowd}); //set the type of entity
+            eManager.AddComponent<MovingQuadrantEntity>(entity);// add the quadrant entity component, used to sort the agent for finding nearby agents
+            eManager.SetComponentData(entity, new MovingQuadrantEntity{ typeEnum = MovingQuadrantEntity.TypeEnum.Crowd}); //set the type of entity
         }
 
         if(fleeing){ // if the agent has the fleeing behaviour

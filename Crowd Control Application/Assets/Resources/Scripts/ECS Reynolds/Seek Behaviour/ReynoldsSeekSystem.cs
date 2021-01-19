@@ -8,22 +8,59 @@ using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Burst;
 
-public class ReynoldsSeekSystem : JobComponentSystem
+public class ReynoldsSeekSystem : SystemBase
 {
+    private EntityQueryDesc seekQueryDec;
+
+    private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
+
     [BurstCompile]
-    private struct SeekBehaviourJob : IJobForEachWithEntity<Translation,ReynoldsMovementValues,HasReynoldsSeekTargetPos>{
-        public void Execute(Entity entity, int index, ref Translation trans, ref ReynoldsMovementValues movement, [ReadOnly] ref HasReynoldsSeekTargetPos targetPos){
-            //float maxVectorLength = 5f;
-            float3 move = targetPos.targetPos - trans.Value;
-            /*if(math.distance(targetPos.targetPos, trans.Value) > maxVectorLength){
-                move = math.normalize(move) * maxVectorLength; 
-            }*/
-            movement.seekMovement = move;
+    private struct SeekBehaviourJob : IJobChunk {      
+        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
+        public ArchetypeChunkComponentType<ReynoldsMovementValues> reynoldsMovementValuesType;
+        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> seekType;
+
+        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
+            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
+            NativeArray<ReynoldsMovementValues> movementArray = chunk.GetNativeArray(reynoldsMovementValuesType);
+            NativeArray<HasReynoldsSeekTargetPos> seekTargetArray = chunk.GetNativeArray(seekType);
+
+            for(int i = 0; i < chunk.Count; i++){   
+                Translation trans = transArray[i];
+                ReynoldsMovementValues movement = movementArray[i];
+                HasReynoldsSeekTargetPos targetPos = seekTargetArray[i];
+                
+                float3 move = targetPos.targetPos - trans.Value;
+                
+                movementArray[i] = new ReynoldsMovementValues{
+                    flockMovement = movement.flockMovement,
+                    seekMovement = move,
+                    fleeMovement = movement.fleeMovement
+                };
+            }
         }
     }
-     protected override JobHandle OnUpdate(JobHandle inputDeps){
-          SeekBehaviourJob seekBehaviourJob = new SeekBehaviourJob{};
-          JobHandle jobHandle = seekBehaviourJob.Schedule(this, inputDeps);
-          return jobHandle;
-     }
+
+    protected override void OnCreate() {
+        seekQueryDec = new EntityQueryDesc{
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<Translation>(),
+                typeof(ReynoldsMovementValues),
+                ComponentType.ReadOnly<HasReynoldsSeekTargetPos>()
+            }
+        };
+        base.OnCreate();
+    }
+
+    protected override void OnUpdate(){
+        EntityQuery seekQuery = GetEntityQuery(seekQueryDec); // query the entities
+
+        SeekBehaviourJob seekBehaviourJob = new SeekBehaviourJob{
+            translationType = GetArchetypeChunkComponentType<Translation>(true),
+            reynoldsMovementValuesType = GetArchetypeChunkComponentType<ReynoldsMovementValues>(),
+            seekType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(true)
+        };
+        JobHandle jobHandle = seekBehaviourJob.Schedule(seekQuery, this.Dependency);
+        this.Dependency = jobHandle;
+    }
 }

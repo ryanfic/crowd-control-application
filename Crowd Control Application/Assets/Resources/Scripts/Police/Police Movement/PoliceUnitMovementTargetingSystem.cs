@@ -8,7 +8,7 @@ using Unity.Collections;
 
 
 // A system for selecting where a police unit moves
-public class PoliceUnitMovementTargetingSystem : JobComponentSystem {
+public class PoliceUnitMovementTargetingSystem : SystemBase {
     private bool rightUpTriggered;
 
     private float3 Target;
@@ -22,7 +22,7 @@ public class PoliceUnitMovementTargetingSystem : JobComponentSystem {
         World.GetOrCreateSystem<UIController>().OnRightMouseUp += RightUpResponse;
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         if(rightUpTriggered){  // if right mouse is released set up destination
             float3 destination = Target;
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
@@ -32,16 +32,13 @@ public class PoliceUnitMovementTargetingSystem : JobComponentSystem {
                     commandBuffer.AddComponent<PoliceUnitMovementDestination>(entityInQueryIndex, policeUnit, new PoliceUnitMovementDestination{
                         Value = destination
                     }); // Add destination component
-                }).Schedule(inputDeps);
+                }).Schedule(this.Dependency);
             rightUpTriggered = false;
 
             commandBufferSystem.AddJobHandleForProducer(destinationHandle);
 
-            return destinationHandle;
-        }
-        else{
-            return inputDeps;
-        }        
+            this.Dependency =  destinationHandle;
+        }    
     }
 
     private void RightUpResponse(object sender, OnRightUpEventArgs e){

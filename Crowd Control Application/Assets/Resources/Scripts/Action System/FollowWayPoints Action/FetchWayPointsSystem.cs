@@ -3,37 +3,85 @@ using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Collections;
 
-public class FetchWayPointsSystem : ComponentSystem
+public class FetchWayPointsSystem : SystemBase
 {
+    private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
     
+    private EntityQueryDesc fetchWPQueryDec;
+
+    private struct FetchWPJob : IJob {
+        public EntityCommandBuffer entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+
+        [DeallocateOnJobCompletion] public NativeArray<Entity> entityArray;
+        [DeallocateOnJobCompletion] public NativeArray<FetchWayPoints> fetchWayPointsArray;
+
+        public BufferFromEntity<WayPoint> wpBuffers;
+        public ComponentDataFromEntity<FollowWayPointsStorage> storageComponents;
+
+        public void Execute(){
+            for(int i = 0; i < entityArray.Length; i++){
+                Entity entity = entityArray[i];
+                FetchWayPoints fetch = fetchWayPointsArray[i];
+
+                FollowWayPointsStorage wpData = storageComponents[fetch.dataHolder]; // get the action data from the entity that holds the data
+                DynamicBuffer<WayPoint> wayPoints = wpBuffers[fetch.dataHolder]; // get the waypoints from the entity that holds the data
+                float3[] points = new float3[wayPoints.Length]; // store the waypoints as an array of points
+                for(int j = 0; j < wayPoints.Length; j++){
+                    points[j] = wayPoints[j].value;
+                }
+
+                entityCommandBuffer.AddComponent<FollowWayPointsAction>(entity, new FollowWayPointsAction {
+                    id = wpData.id,
+                    curPointNum = wpData.curPointNum
+                });// add the FollowWayPointsAction to the crowd agent
+
+                DynamicBuffer<WayPoint> wpAdded =entityCommandBuffer.AddBuffer<WayPoint>(entity); // add the waypoint buffer to the crowd agent
+                for(int j = 0; j < points.Length; j++){
+                    wpAdded.Add(new WayPoint{value = points[j]});
+                }
+
+                entityCommandBuffer.AddComponent<HasReynoldsSeekTargetPos>(entity, new HasReynoldsSeekTargetPos { // add the Target position to the crowd agent so it moves
+                    targetPos = points[wpData.curPointNum]
+                });
+                entityCommandBuffer.RemoveComponent<FetchWayPoints>(entity);
+            }
+        }
+    }
+
+    protected override void OnCreate() {
+        commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        fetchWPQueryDec = new EntityQueryDesc{
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<FetchWayPoints>()
+            },
+            None = new ComponentType[]{
+                typeof(StoreWayPoints)
+            }
+        };
+        base.OnCreate();
+    }
+
     protected override void OnUpdate(){
-        //BufferFromEntity<WayPoint> buffers = GetBufferFromEntity<WayPoint>(); // used to access things with waypoint buffer
+        EntityQuery fetchWPQuery = GetEntityQuery(fetchWPQueryDec); // query the entities
+        BufferFromEntity<WayPoint> buffers = GetBufferFromEntity<WayPoint>(); // used to access things with waypoint buffer
+        ComponentDataFromEntity<FollowWayPointsStorage> storageComponents = GetComponentDataFromEntity<FollowWayPointsStorage>();
 
-        //For entities without the hasReynoldsSeekTargetPos component
-        Entities.WithNone<StoreWayPoints>().ForEach((Entity crowdEntity, ref FetchWayPoints fetch) => {  
-            Entity wayPointHolder = fetch.dataHolder; // get the entity that holds the waypoints
-            FollowWayPointsStorage wpData = EntityManager.GetComponentData<FollowWayPointsStorage>(fetch.dataHolder); // get the action data from the entity that holds the data
-            DynamicBuffer<WayPoint> wayPoints = EntityManager.GetBuffer<WayPoint>(fetch.dataHolder); // get the waypoints from the entity that holds the data
-            float3[] points = new float3[wayPoints.Length]; // store the waypoints as an array of points
-            for(int i = 0; i < wayPoints.Length; i++){
-                points[i] = wayPoints[i].value;
-            }
+        NativeArray<Entity> fetchWPEntityArray = fetchWPQuery.ToEntityArray(Allocator.TempJob);//get the array of entities
+        NativeArray<FetchWayPoints> fetchWPArray = fetchWPQuery.ToComponentDataArray<FetchWayPoints>(Allocator.TempJob);
 
-            EntityManager.AddComponentData<FollowWayPointsAction>(crowdEntity, new FollowWayPointsAction {
-                id = wpData.id,
-                curPointNum = wpData.curPointNum
-            });// add the FollowWayPointsAction to the crowd agent
+        FetchWPJob fetchJob = new FetchWPJob{ // creates the "follow waypoints" job
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer(),
+            entityArray = fetchWPEntityArray,
+            fetchWayPointsArray = fetchWPArray,
+            wpBuffers = buffers,
+            storageComponents = storageComponents
 
-            DynamicBuffer<WayPoint> wpAdded = EntityManager.AddBuffer<WayPoint>(crowdEntity); // add the waypoint buffer to the crowd agent
-            for(int i = 0; i < points.Length; i++){
-                wpAdded.Add(new WayPoint{value = points[i]});
-            }
+        };
+        JobHandle jobHandle = IJobExtensions.Schedule(fetchJob,this.Dependency);
 
-            EntityManager.AddComponentData<HasReynoldsSeekTargetPos>(crowdEntity, new HasReynoldsSeekTargetPos { // add the Target position to the crowd agent so it moves
-                targetPos = points[wpData.curPointNum]
-            });
-            EntityManager.RemoveComponent<FetchWayPoints>(crowdEntity);
-        });
+        commandBufferSystem.AddJobHandleForProducer(jobHandle); // tell the system to execute the command buffer after the job has been completed
+
+        this.Dependency = jobHandle;
     }
 }
 

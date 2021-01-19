@@ -176,7 +176,7 @@ public class FindTargetJobSystem : JobComponentSystem{
     [BurstCompile]
     /*Find Targets using the Quadrant system (instead of iterating through all targets)*/
     private struct FindTargetQuadrantSystemJob : IJobForEachWithEntity<Translation> {
-        [ReadOnly] public NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby targets
+        [ReadOnly] public NativeMultiHashMap<int, MovingQuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby targets
 
         public NativeArray<Entity> closestTargetEntityArray; // in order to add the closest target (in the other job), need an array of closest targets
 
@@ -189,17 +189,17 @@ public class FindTargetJobSystem : JobComponentSystem{
             Entity closestTargetEntity = Entity.Null; //Since entity is a struct, it cannot simply be null, it must be Entity.Null
             //float3 closestTargetPosition = float3.zero;
             float closestTargetDistance = float.MaxValue;
-            int hashMapKey = QuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
+            int hashMapKey = MovingQuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
 
             FindTarget(hashMapKey,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // Seach the quadrant that the seeker is in
             FindTarget(hashMapKey + 1,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // search the quadrant to the right
             FindTarget(hashMapKey - 1,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // search the quadrant to the left
-            FindTarget(hashMapKey + QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // quadrant above
-            FindTarget(hashMapKey - QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // quadrant below
-            FindTarget(hashMapKey + 1 + QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // up right
-            FindTarget(hashMapKey - 1 + QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // up left
-            FindTarget(hashMapKey + 1 - QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // down right
-            FindTarget(hashMapKey -1 - QuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // down left
+            FindTarget(hashMapKey + MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // quadrant above
+            FindTarget(hashMapKey - MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // quadrant below
+            FindTarget(hashMapKey + 1 + MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // up right
+            FindTarget(hashMapKey - 1 + MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // up left
+            FindTarget(hashMapKey + 1 - MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // down right
+            FindTarget(hashMapKey -1 - MovingQuadrantSystem.quadrantYMultiplier,seekerPosition, ref closestTargetEntity, ref closestTargetDistance); // down left
 
             // once found closest target, add the closest target to the closest target array
             closestTargetEntityArray[index] = closestTargetEntity;
@@ -208,11 +208,11 @@ public class FindTargetJobSystem : JobComponentSystem{
 
         private void FindTarget(int hashMapKey, float3 seekerPosition, ref Entity closestTargetEntity, ref float closestTargetDistance){
             // Get the data from the quadrant that the seeker belongs to
-            QuadrantData quadData;
+            MovingQuadrantData quadData;
             NativeMultiHashMapIterator<int> nativeMultiHashMapIterator;
             if(quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out quadData, out nativeMultiHashMapIterator)){ // try to get the first element in the hashmap
                 do{ //if there is at least one thing in the quadrant, try getting more
-                    if(QuadrantEntity.TypeEnum.Target == quadData.quadrantEntity.typeEnum){ // make sure the other entity is not the same type (is a target and seeker combo)
+                    if(MovingQuadrantEntity.TypeEnum.Target == quadData.quadrantEntity.typeEnum){ // make sure the other entity is not the same type (is a target and seeker combo)
                         if(closestTargetEntity == Entity.Null){ //if there was no closest target entity
                             //No target
                             closestTargetEntity = quadData.entity;
@@ -275,7 +275,7 @@ public class FindTargetJobSystem : JobComponentSystem{
 
         JobHandle jobHandle = findTargetBurstJob.Schedule(this, inputDeps); // Schedule the job*/
         FindTargetQuadrantSystemJob findTargetQuadrantSystemJob = new FindTargetQuadrantSystemJob { // create the "find targets" job
-            quadrantMultiHashMap = QuadrantSystem.quadrantMultiHashMap, // the job needs the hashmap
+            quadrantMultiHashMap = MovingQuadrantSystem.quadrantMultiHashMap, // the job needs the hashmap
             closestTargetEntityArray = closestTargetEntityArray
         };
         JobHandle jobHandle = findTargetQuadrantSystemJob.Schedule(this, inputDeps);

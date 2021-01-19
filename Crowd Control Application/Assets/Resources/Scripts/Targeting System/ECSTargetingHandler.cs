@@ -54,11 +54,11 @@ public class ECSTargetingHandler : MonoBehaviour
             typeof(RenderMesh),
             typeof(Scale),
             typeof(Seeker),
-            typeof(QuadrantEntity)
+            typeof(MovingQuadrantEntity)
         );
         SetEntityComponentData(en, position, cubeMesh, seekerMaterial); //set component data
         eManager.SetComponentData(en, new Scale{ Value = 1.5f}); //Set size of entity
-        eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Seeker}); //set the type of entity
+        eManager.SetComponentData(en, new MovingQuadrantEntity{ typeEnum = MovingQuadrantEntity.TypeEnum.Seeker}); //set the type of entity
     }
 
     private void SpawnTargetEntity(){
@@ -68,11 +68,11 @@ public class ECSTargetingHandler : MonoBehaviour
             typeof(RenderMesh),
             typeof(Scale),
             typeof(Target),
-            typeof(QuadrantEntity)
+            typeof(MovingQuadrantEntity)
         );
         SetEntityComponentData(en, new float3(UnityEngine.Random.Range(-20,20f), UnityEngine.Random.Range(-20,20f), /*UnityEngine.Random.Range(-5,5f)*/40f), cubeMesh, targetMaterial); //set component data
         eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
-        eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Target}); //set the type of entity
+        eManager.SetComponentData(en, new MovingQuadrantEntity{ typeEnum = MovingQuadrantEntity.TypeEnum.Target}); //set the type of entity
     }
 
     //Set up entity components of a given entity

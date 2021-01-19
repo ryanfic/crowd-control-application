@@ -17,7 +17,7 @@ public class OnRightUpEventArgs : EventArgs{
     public float3 Pos;
 }
     
-public class UIController : JobComponentSystem {
+public class UIController : SystemBase {
 
     public event EventHandler On1Down;
     public event EventHandler On2Down;
@@ -43,7 +43,7 @@ public class UIController : JobComponentSystem {
         mainCam = Camera.main;
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         bool btn1Down = Input.GetKeyDown(KeyCode.Alpha1);
         bool btn2Down = Input.GetKeyDown(KeyCode.Alpha2);
         bool leftMouseDown = Input.GetMouseButtonDown(0);
@@ -107,7 +107,6 @@ public class UIController : JobComponentSystem {
             }
         }
 
-        return inputDeps;
     }
 
     private void OneDownResponse(object sender, System.EventArgs e){

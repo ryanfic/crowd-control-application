@@ -110,7 +110,7 @@ public class ECSBoidsHandler : MonoBehaviour
             typeof(ReynoldsFlockBehaviour),
             typeof(ReynoldsMovementValues),
             typeof(ReynoldsBehaviourWeights),
-            typeof(QuadrantEntity)
+            typeof(MovingQuadrantEntity)
         );
         SetEntityComponentData(en, new float3(pos.x, pos.y, pos.z), entityMesh, entityMaterial); //set component data
         //eManager.SetComponentData(en, new Scale{ Value = 0.5f}); //set size of entity
@@ -121,7 +121,7 @@ public class ECSBoidsHandler : MonoBehaviour
         eManager.SetComponentData(en, new ReynoldsMovementValues{flockMovement = float3.zero,
                                                         seekMovement = float3.zero,
                                                         fleeMovement = float3.zero});
-        eManager.SetComponentData(en, new QuadrantEntity{ typeEnum = QuadrantEntity.TypeEnum.Crowd}); //set the type of entity
+        eManager.SetComponentData(en, new MovingQuadrantEntity{ typeEnum = MovingQuadrantEntity.TypeEnum.Crowd}); //set the type of entity
         eManager.SetComponentData(en, new ReynoldsBehaviourWeights{
                                         maxVelocity = crowdMaxVelocity, // The maximum speed of the agent
                                         fleeWeight = crowdFleeWeight,

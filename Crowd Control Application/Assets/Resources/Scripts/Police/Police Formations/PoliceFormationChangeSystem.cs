@@ -10,7 +10,7 @@ using Unity.Collections;
 // A system for changing the formation of a police unit
 // Pressing 1 changes the unit(s) to loose cordon
 // Pressing 2 changes the unit9s) to 3-sided box
-public class PoliceFormationChangeSystem : JobComponentSystem {
+public class PoliceFormationChangeSystem : SystemBase {
     //private bool OneDown;
     //private bool TwoDown;
 
@@ -41,7 +41,7 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
         //Debug.Log(Object.FindObjectsOfType<Camera>().Length);
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         if(ToLooseCordon){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
@@ -57,13 +57,13 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
                                 LineWidth = dimensions.LineWidth
                             }); // Add component to change to cordon
                         }
-                }).Schedule(inputDeps);
+                }).Schedule(this.Dependency);
             //OneDown = false;
             ToLooseCordon = false;
 
             commandBufferSystem.AddJobHandleForProducer(cordonHandle);
 
-            return cordonHandle;
+            this.Dependency = cordonHandle;
         }
         else if(To3SidedBox){ 
             //float spacing = LineSpacing;
@@ -80,15 +80,12 @@ public class PoliceFormationChangeSystem : JobComponentSystem {
                                 LineWidth = dimensions.LineWidth
                             }); // Add component to change to cordon
                         }
-                }).Schedule(inputDeps);
+                }).Schedule(this.Dependency);
             To3SidedBox = false;
 
             commandBufferSystem.AddJobHandleForProducer(boxHandle);
 
-            return boxHandle;
-        }
-        else{
-            return inputDeps;
+            this.Dependency = boxHandle;
         }        
     }
 

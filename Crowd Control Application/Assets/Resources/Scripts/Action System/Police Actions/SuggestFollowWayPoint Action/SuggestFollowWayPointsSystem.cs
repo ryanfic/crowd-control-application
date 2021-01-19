@@ -8,19 +8,21 @@ using Unity.Collections;
 //using Unity.Core;
 using crowd_Actions;
 
-public class SuggestFollowWayPointsSystem : JobComponentSystem {
+public class SuggestFollowWayPointsSystem : SystemBase {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
+
+    private EntityQueryDesc suggestionQueryDec;
    
     //[BurstCompile]
     private struct SuggestFollowWayPointsJob : IJob {
         public EntityCommandBuffer entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-        public NativeArray<Entity> suggesterArray; // Entity array of entities with SuggestWayPointsAction & Translation
-        public NativeArray<SuggestFollowWayPointsAction> suggestActionArray; // Array of all of the SuggestFollowWayPointsAction components;
-        public NativeArray<Translation> translationArray; // Array of all of the translations of the suggestors
+        [DeallocateOnJobCompletion] public NativeArray<Entity> suggesterArray; // Entity array of entities with SuggestWayPointsAction & Translation
+        [DeallocateOnJobCompletion] public NativeArray<SuggestFollowWayPointsAction> suggestActionArray; // Array of all of the SuggestFollowWayPointsAction components;
+        [DeallocateOnJobCompletion] public NativeArray<Translation> translationArray; // Array of all of the translations of the suggestors
         //public BufferFromEntity<SuggestNearbyCrowd> nearbyCrowdArrays;
 
         
-        [ReadOnly] public NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby crowd agents
+        [ReadOnly] public NativeMultiHashMap<int, MovingQuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby crowd agents
         public BufferFromEntity<Action> actionBufferArray; // an array of all action buffers
         public BufferFromEntity<WayPoint> wayPointBufferArray; // an array of all waypoint buffers
         public float time;
@@ -35,17 +37,17 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
                     //DynamicBuffer<SuggestNearbyCrowd> nearCrowdList = nearbyCrowdArrays[policeAgent]; // get the nearby crowd buffer of the police agent in question 
                     //nearCrowdList.Clear(); // clear the list of nearby crowd agents
                     
-                    int hashMapKey = QuadrantSystem.GetPositionHashMapKey(translationArray[i].Value); // Calculate the hash key of the police agent in question
+                    int hashMapKey = MovingQuadrantSystem.GetPositionHashMapKey(translationArray[i].Value); // Calculate the hash key of the police agent in question
 
                     SuggestInQuadrant(hashMapKey, i); // Search the quadrant that the police agent is in
                     SuggestInQuadrant(hashMapKey + 1,i); // search the quadrant to the right
                     SuggestInQuadrant(hashMapKey - 1,i); // search the quadrant to the left
-                    SuggestInQuadrant(hashMapKey + QuadrantSystem.quadrantZMultiplier,i); // quadrant above
-                    SuggestInQuadrant(hashMapKey - QuadrantSystem.quadrantZMultiplier,i); // quadrant below
-                    SuggestInQuadrant(hashMapKey + 1 + QuadrantSystem.quadrantZMultiplier,i); // up right
-                    SuggestInQuadrant(hashMapKey - 1 + QuadrantSystem.quadrantZMultiplier,i); // up left
-                    SuggestInQuadrant(hashMapKey + 1 - QuadrantSystem.quadrantZMultiplier,i); // down right
-                    SuggestInQuadrant(hashMapKey -1 - QuadrantSystem.quadrantZMultiplier,i); // down left
+                    SuggestInQuadrant(hashMapKey + MovingQuadrantSystem.quadrantZMultiplier,i); // quadrant above
+                    SuggestInQuadrant(hashMapKey - MovingQuadrantSystem.quadrantZMultiplier,i); // quadrant below
+                    SuggestInQuadrant(hashMapKey + 1 + MovingQuadrantSystem.quadrantZMultiplier,i); // up right
+                    SuggestInQuadrant(hashMapKey - 1 + MovingQuadrantSystem.quadrantZMultiplier,i); // up left
+                    SuggestInQuadrant(hashMapKey + 1 - MovingQuadrantSystem.quadrantZMultiplier,i); // down right
+                    SuggestInQuadrant(hashMapKey -1 - MovingQuadrantSystem.quadrantZMultiplier,i); // down left
                     
                     entityCommandBuffer.SetComponent<SuggestFollowWayPointsAction>(suggesterArray[i],new SuggestFollowWayPointsAction{
                         id = suggestActionArray[i].id,
@@ -56,18 +58,17 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
                     }); // update when the last suggestion was made
                 }
             }
-            
         }
         // Suggest to nearby crowd agents
         private void SuggestInQuadrant(int hashMapKey, int policeIndex){
             float3 policePosition = translationArray[policeIndex].Value; // get the police agent's position
             float suggestionRadius = suggestActionArray[policeIndex].radius; // get the suggestion radius
             // Get the data from the quadrant that the seeker belongs to
-            QuadrantData quadData;
+            MovingQuadrantData quadData;
             NativeMultiHashMapIterator<int> nativeMultiHashMapIterator;
             if(quadrantMultiHashMap.TryGetFirstValue(hashMapKey, out quadData, out nativeMultiHashMapIterator)){ // try to get the first element in the hashmap
                 do{ //if there is at least one thing in the quadrant, try getting more
-                    if(QuadrantEntity.TypeEnum.Crowd == quadData.quadrantEntity.typeEnum){ // make sure the other entity is a crowd agent
+                    if(MovingQuadrantEntity.TypeEnum.Crowd == quadData.quadrantEntity.typeEnum){ // make sure the other entity is a crowd agent
                         float dist = math.distance(policePosition, quadData.position);
                         if(dist < suggestionRadius  && dist > 0.01f)  // if the crowd agent is within the suggestion radius
                         {
@@ -144,17 +145,22 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
 
     protected override void OnCreate() {
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        suggestionQueryDec = new EntityQueryDesc{
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<SuggestFollowWayPointsAction>(),
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadOnly<SuggestNearbyCrowd>()
+            }
+        };
         base.OnCreate();
     }
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         //Find all entities that have the SuggestFollowWayPointsAction and translation components
-        EntityQuery query = GetEntityQuery(typeof(SuggestFollowWayPointsAction), typeof(Translation), typeof(SuggestNearbyCrowd));
+        EntityQuery query = GetEntityQuery(suggestionQueryDec);
 
         NativeArray<Entity> entityArray = query.ToEntityArray(Allocator.TempJob); // Get the arrays corresponding to the entities queried
         NativeArray<SuggestFollowWayPointsAction> suggestionArray = query.ToComponentDataArray<SuggestFollowWayPointsAction>(Allocator.TempJob);
         NativeArray<Translation> transArray = query.ToComponentDataArray<Translation>(Allocator.TempJob);
-
-
 
         SuggestFollowWayPointsJob suggestJob = new SuggestFollowWayPointsJob{ // creates the change action job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer(),
@@ -162,21 +168,17 @@ public class SuggestFollowWayPointsSystem : JobComponentSystem {
             suggestActionArray = suggestionArray,
             translationArray = transArray,
             //nearbyCrowdArrays = GetBufferFromEntity<SuggestNearbyCrowd>(),
-            quadrantMultiHashMap = QuadrantSystem.quadrantMultiHashMap,
+            quadrantMultiHashMap = MovingQuadrantSystem.quadrantMultiHashMap,
             actionBufferArray = GetBufferFromEntity<Action>(),
             wayPointBufferArray = GetBufferFromEntity<WayPoint>(),
             time = (float)Time.ElapsedTime
         };
-        JobHandle jobHandle = suggestJob.Schedule(inputDeps);
+        JobHandle jobHandle = IJobExtensions.Schedule(suggestJob,this.Dependency);
         jobHandle.Complete();
 
         commandBufferSystem.AddJobHandleForProducer(jobHandle); // tell the system to execute the command buffer after the job has been completed
 
-        entityArray.Dispose(); // Dispose of the arrays
-        suggestionArray.Dispose();
-        transArray.Dispose();
-
-        return jobHandle;
+        this.Dependency = jobHandle;
     }
 }
 

@@ -6,7 +6,7 @@ using Unity.Jobs;
 using Unity.Transforms;
 using Unity.Mathematics;
 
-public class PoliceSelectionSystem : JobComponentSystem
+public class PoliceSelectionSystem : SystemBase
 {
     private bool mouseEventTriggered;
     private float minX;
@@ -26,7 +26,7 @@ public class PoliceSelectionSystem : JobComponentSystem
         //base.OnCreate();
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    protected override void OnUpdate(){
         if(mouseEventTriggered){
             EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
             //ForEach needs local variables, assign to local variables
@@ -43,7 +43,7 @@ public class PoliceSelectionSystem : JobComponentSystem
                         //Debug.Log("X: " + transl.Value.x + ", Z: " + transl.Value.z);
                         commandBuffer.AddComponent<SelectedPoliceUnit>(entityInQueryIndex, policeUnit); // Add component
                     }         
-                }).Schedule(inputDeps);
+                }).Schedule(this.Dependency);
             JobHandle deselectionHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>()
                 .ForEach((Entity policeUnit, int entityInQueryIndex, in Translation transl)=>{
@@ -57,11 +57,8 @@ public class PoliceSelectionSystem : JobComponentSystem
             commandBufferSystem.AddJobHandleForProducer(selectionHandle);
             commandBufferSystem.AddJobHandleForProducer(deselectionHandle);
 
-            return deselectionHandle;
-        }
-        else{
-            return inputDeps;
-        }        
+            this.Dependency = deselectionHandle;
+        }     
     }
 
     private void LeftClickResponse(object sender, OnLeftClickEventArgs e){

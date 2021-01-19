@@ -133,20 +133,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxVelocity: 2
   flocking: 1
-  fleeing: 0
+  fleeing: 1
   seeking: 1
   flockingWeight: 10
-  fleeingWeight: 0
+  fleeingWeight: 2
   seekingWeight: 2
   avoidanceRadius: 3
   avoidanceWeight: 80
   cohesionRadius: 7
   cohesionWeight: 100
   fleeTargetPos:
-    x: 0
+    x: -1
     y: 0
     z: 0
-  fleeSafeDistance: 0
+  fleeSafeDistance: 2
   seekTargetPos:
     x: 0
     y: 0
