@@ -7,48 +7,89 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Jobs;
 using Unity.Burst;
+using UnityEngine;
 
-
-public class PoliceUnitTargetNearbyObjectSystem : JobComponentSystem
+[UpdateAfter(typeof(PoliceUnitRemoveMovementSystem))]
+public class PoliceUnitTargetNearbyObjectSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
+    private EntityQueryDesc nearbyIntersectionQueryDesc;
+    private EntityQueryDesc addFindIntersectionQueryDesc;
+
+    private bool toldToFindIntersection;
 
     protected override void OnCreate(){
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
+        nearbyIntersectionQueryDesc = new EntityQueryDesc{ // define query for the 'find nearest intersection'
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadOnly<PoliceUnitComponent>(),
+                ComponentType.ReadOnly<PoliceUnitTargetNearestIntersection>(),
+            }
+        };
+
+        addFindIntersectionQueryDesc = new EntityQueryDesc{ // define query for the 'find nearest intersection'
+            All = new ComponentType[]{
+                ComponentType.ReadOnly<Translation>(),
+                ComponentType.ReadOnly<PoliceUnitComponent>(),
+                ComponentType.ReadOnly<SelectedPoliceUnit>(),
+            }
+        };
+
+        toldToFindIntersection = false;
+
+        //Obtain Voice Controller - There should only be one
+        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        if(voiceControllers.Length > 0){
+            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
+            voiceController.OnMoveToIntersectionCommand += VoiceFindIntersectionResponse;
+        }
+        
         base.OnCreate();
     }
 
     [BurstCompile]
-    private struct FindNearestIntersectionJob : IJobForEachWithEntity<Translation,PoliceUnitComponent,PoliceUnitTargetNearestIntersection> {
+    private struct FindNearestIntersectionJob : IJobChunk {
         [ReadOnly] public NativeMultiHashMap<int, StationaryQuadrantData> stationaryQuadrantMultiHashMap; // uses information from the stationary quadrant hash map to find nearby crowd agents
         public EntityCommandBuffer.Concurrent commandBuffer;
 
-        //ReadOnly on certain components as they are not being altered
-        public void Execute(Entity entity, int index, [ReadOnly] ref Translation trans, [ReadOnly] ref PoliceUnitComponent policeUnitComponent, [ReadOnly] ref PoliceUnitTargetNearestIntersection targetIntersection){
-            float3 agentPosition = trans.Value; // the position of the seeker
+        [ReadOnly] public ArchetypeChunkEntityType entityType;
+        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
 
-            float nearestDst = float.PositiveInfinity; // set the closest distance to the largest possible number
-            float3 nearestPos = new float3(0,0,0); // a holder for now
-            
-            int hashMapKey = StationaryQuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
+        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
+            NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
+            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
 
-            FindNearestIntersection(hashMapKey, agentPosition, ref nearestPos, ref nearestDst); // Seach the quadrant that the seeker is in
-            FindNearestIntersection(hashMapKey + 1,agentPosition, ref nearestPos, ref nearestDst); // search the quadrant to the right
-            FindNearestIntersection(hashMapKey - 1,agentPosition, ref nearestPos, ref nearestDst); // search the quadrant to the left
-            FindNearestIntersection(hashMapKey + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // quadrant above
-            FindNearestIntersection(hashMapKey - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // quadrant below
-            FindNearestIntersection(hashMapKey + 1 + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // up right
-            FindNearestIntersection(hashMapKey - 1 + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // up left
-            FindNearestIntersection(hashMapKey + 1 - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // down right
-            FindNearestIntersection(hashMapKey -1 - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // down left
+            for(int i = 0; i < chunk.Count; i++){
+                Entity entity = entityArray[i];
+                Translation trans = transArray[i];
 
-            if(!float.IsInfinity(nearestDst)){//if the distance to nearest intersection is not still infinity
-                commandBuffer.AddComponent<PoliceUnitMovementDestination>(index,entity,new PoliceUnitMovementDestination{
-                    Value = nearestPos
-                }); //Add location target to entity so it starts moving towards the intersection
-            }            
-            
-            commandBuffer.RemoveComponent<PoliceUnitTargetNearestIntersection>(index,entity); //Remove the "find nearest intersection" component
+
+                float3 agentPosition = trans.Value; // the position of the seeker
+
+                float nearestDst = float.PositiveInfinity; // set the closest distance to the largest possible number
+                float3 nearestPos = new float3(0,0,0); // a holder for now
+                
+                int hashMapKey = StationaryQuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
+
+                FindNearestIntersection(hashMapKey, agentPosition, ref nearestPos, ref nearestDst); // Seach the quadrant that the seeker is in
+                FindNearestIntersection(hashMapKey + 1,agentPosition, ref nearestPos, ref nearestDst); // search the quadrant to the right
+                FindNearestIntersection(hashMapKey - 1,agentPosition, ref nearestPos, ref nearestDst); // search the quadrant to the left
+                FindNearestIntersection(hashMapKey + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // quadrant above
+                FindNearestIntersection(hashMapKey - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // quadrant below
+                FindNearestIntersection(hashMapKey + 1 + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // up right
+                FindNearestIntersection(hashMapKey - 1 + StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // up left
+                FindNearestIntersection(hashMapKey + 1 - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // down right
+                FindNearestIntersection(hashMapKey -1 - StationaryQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearestPos, ref nearestDst); // down left
+
+                if(!float.IsInfinity(nearestDst)){//if the distance to nearest intersection is not still infinity (thus we found something)
+                    commandBuffer.AddComponent<PoliceUnitMovementDestination>(chunkIndex,entity,new PoliceUnitMovementDestination{
+                        Value = nearestPos
+                    }); //Add location target to entity so it starts moving towards the intersection
+                }            
+                
+                commandBuffer.RemoveComponent<PoliceUnitTargetNearestIntersection>(chunkIndex,entity); //Remove the "find nearest intersection" component
+            }
         }
 
 
@@ -73,19 +114,73 @@ public class PoliceUnitTargetNearbyObjectSystem : JobComponentSystem
         }
     }
 
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
+    //A job for adding the "find nearest intersection" tag to all selected police units
+    [BurstCompile]
+    private struct AddFindNearestIntersectionTagJob : IJobChunk {
+        public EntityCommandBuffer.Concurrent commandBuffer;
+
+        [ReadOnly] public ArchetypeChunkEntityType entityType;
+
+        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
+            NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
+
+            for(int i = 0; i < chunk.Count; i++){
+                Entity entity = entityArray[i];
+                commandBuffer.AddComponent<PoliceUnitTargetNearestIntersection>(chunkIndex,entity,new PoliceUnitTargetNearestIntersection{}); //Add location target to entity so it starts moving towards the intersection
+            }
+        }
+    }
+
+    protected override void OnUpdate(){
         EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+
+        EntityQuery nearbyIntersectionQuery = GetEntityQuery(nearbyIntersectionQueryDesc); // query the entities
 
         FindNearestIntersectionJob nearestIntersectionJob = new FindNearestIntersectionJob{ 
             stationaryQuadrantMultiHashMap = StationaryQuadrantSystem.quadrantMultiHashMap,
-            commandBuffer = commandBuffer
+            commandBuffer = commandBuffer,
+            entityType =  GetArchetypeChunkEntityType(),
+            translationType = GetArchetypeChunkComponentType<Translation>(true)
         };
-        JobHandle jobHandle = nearestIntersectionJob.Schedule(this, inputDeps); //schedule the job
+        JobHandle findIntersectionJobHandle = nearestIntersectionJob.Schedule(nearbyIntersectionQuery, this.Dependency); //schedule the job
 
-        commandBufferSystem.AddJobHandleForProducer(jobHandle); // make sure the components get added/removed for the job
+        commandBufferSystem.AddJobHandleForProducer(findIntersectionJobHandle); // make sure the components get added/removed for the job
 
 
-        return jobHandle;
+        this.Dependency = findIntersectionJobHandle;
+
+        /*if(toldToFindIntersection){
+            
+            EntityQuery addFindIntersectionTagQuery = GetEntityQuery(addFindIntersectionQueryDesc); // query the entities
+            //Add label job
+            AddFindNearestIntersectionTagJob addFindIntersectionTagJob = new AddFindNearestIntersectionTagJob{ 
+                commandBuffer = commandBuffer,
+                entityType =  GetArchetypeChunkEntityType()
+            };
+            JobHandle intersectionTagJobHandle = addFindIntersectionTagJob.Schedule(addFindIntersectionTagQuery, this.Dependency ); //schedule the job
+            commandBufferSystem.AddJobHandleForProducer(intersectionTagJobHandle); // make sure the components get added/removed for the job
+            this.Dependency = intersectionTagJobHandle;
+            toldToFindIntersection = false;
+        }*/
+        
+    }
+
+    private void VoiceFindIntersectionResponse(object sender, System.EventArgs eventArgs){
+        //toldToFindIntersection = true;
+        //this.OnUpdate();
+
+        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityQuery addFindIntersectionTagQuery = GetEntityQuery(addFindIntersectionQueryDesc); // query the entities
+            //Add label job
+        AddFindNearestIntersectionTagJob addFindIntersectionTagJob = new AddFindNearestIntersectionTagJob{ 
+            commandBuffer = commandBuffer,
+            entityType =  GetArchetypeChunkEntityType()
+        };
+        JobHandle intersectionTagJobHandle = addFindIntersectionTagJob.Schedule(addFindIntersectionTagQuery, this.Dependency /*findIntersectionJobHandle*/); //schedule the job
+        commandBufferSystem.AddJobHandleForProducer(intersectionTagJobHandle); // make sure the components get added/removed for the job
+        this.Dependency = intersectionTagJobHandle;
+        //toldToFindIntersection = false;
+        
     }
 }
 

@@ -5,6 +5,9 @@ using UnityEngine.Windows.Speech;
 using System.Linq;
 using System;
 
+/*
+    A test class for voice controls (NOT FOR ACTUAL USE IN THE CROWD CONTROL SYSTEM)
+*/
 public class VoiceMovement : MonoBehaviour
 {
     private KeywordRecognizer keywordRecognizer;

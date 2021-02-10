@@ -21,7 +21,8 @@ public class PoliceUnitMovementSystem : SystemBase
         float deltaTime = Time.DeltaTime;
         EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
 
-        JobHandle jobHandle = Entities
+        //Movement of Police Towards a particular destination via Police Unit Movement Destination
+        JobHandle destinationJobHandle = Entities
             .WithAll<PoliceUnitComponent>()
             .ForEach((Entity policeUnit, int entityInQueryIndex, ref Translation transl, ref Rotation rot, in PoliceUnitMaxSpeed speed, in PoliceUnitRotationSpeed rotSpeed, in PoliceUnitMovementDestination destination)=>{
                 float3 direction = math.normalize((destination.Value - transl.Value));
@@ -42,9 +43,32 @@ public class PoliceUnitMovementSystem : SystemBase
             })
             .ScheduleParallel(this.Dependency);
 
-        commandBufferSystem.AddJobHandleForProducer(jobHandle);
+        commandBufferSystem.AddJobHandleForProducer(destinationJobHandle);
 
-        this.Dependency = jobHandle;
+        //Forward movement of the police unit when the unit has the Police Unit Move Forward Component
+        //Z is the forward direction
+        JobHandle forwardJobHandle = Entities
+            .WithAll<PoliceUnitComponent,PoliceUnitMoveForward>()
+            .ForEach((Entity policeUnit, int entityInQueryIndex, ref Translation transl, in Rotation rot, in PoliceUnitMaxSpeed speed)=>{ // Update the position of all police units with the move forward tag
+                float3 movement = math.forward(rot.Value)*deltaTime; // math.forward gets a unit vector pointing in the direction of a quaternion (the correct direction)
+                transl.Value += movement;
+            })
+            .ScheduleParallel(destinationJobHandle);
+
+        //Rotate a police unit that has the Police Unit Continuous Rotation component
+        JobHandle rotateJobHandle = Entities
+            .WithAll<PoliceUnitComponent>()
+            .ForEach((Entity policeUnit, int entityInQueryIndex, ref Rotation rot, in PoliceUnitContinuousRotation continuousRot, in PoliceUnitRotationSpeed rotSpeed)=>{
+                float3 destination = new float3(-1,0,0);
+                if(!continuousRot.RotateLeft){ // if we aren't rotating to the left, rotate in the opposite direction (to the right)
+                    destination.x = -destination.x;
+                }
+                destination = math.mul(rot.Value,destination); // make the location relative to the current rotation by multiplying the destination by the current rotation
+                rot.Value = RotateTowards(rot.Value, float3.zero, destination, (rotSpeed.Value * deltaTime)/3);
+            })
+            .ScheduleParallel(forwardJobHandle);
+
+        this.Dependency = rotateJobHandle;
     }
 
     // don't use a speed greater than 1

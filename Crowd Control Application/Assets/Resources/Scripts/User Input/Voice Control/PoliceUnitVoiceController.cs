@@ -13,6 +13,9 @@ public class OnTo3SidedBoxEventArgs : EventArgs{
     public int LeftLineNum;
     public int RightLineNum;
 }
+public class OnRotateEventArgs : EventArgs{
+    public bool RotateLeft;
+}
 
 public class PoliceUnitVoiceController : MonoBehaviour
 {
@@ -36,6 +39,12 @@ public class PoliceUnitVoiceController : MonoBehaviour
 
     //3 Sided Box Command Events
     public event EventHandler<OnTo3SidedBoxEventArgs> OnTo3SidedBoxVoiceCommand; // Needs args to say what line goes where
+
+    //Movement Command Events
+    public event EventHandler OnMoveToIntersectionCommand;
+    public event EventHandler OnMoveForwardCommand;
+    public event EventHandler OnHaltCommand;
+    public event EventHandler<OnRotateEventArgs> OnRotateCommand;
 
 
     void Start()
@@ -76,7 +85,7 @@ public class PoliceUnitVoiceController : MonoBehaviour
         actions.Add("Single Belt Wedge Form", ToSingleBeltWedge); //to Single Belt Wedge
         actions.Add("Double Belt Wedge Form", ToDoubleBeltWedge); //to Double Belt Wedge
         actions.Add("Prepare to Advance Advance", WedgeAdvance);//To move forward
-        actions.Add("Halt", WedgeHalt);//Halt forward movement
+        //actions.Add("Halt", WedgeHalt);//Halt forward movement
         //Create a corridor -> "Front Officer...Disengage"
     }
 
@@ -92,9 +101,18 @@ public class PoliceUnitVoiceController : MonoBehaviour
     private void AddMovementCommands(){
         //Move to...
         //Intersection
+        actions.Add(/*"The objective is to take the intersection. Do you understand? Advance"*/"The Objective Is To Take The Intersection Advance", MoveToIntersection); // move to the intersection
         //Stop sign
 
         //Wheeling
+
+        //Move forward
+        actions.Add("Section Advance", MoveForward);
+        //Halt
+        actions.Add("Halt", Halt);
+        //Rotate
+        actions.Add("Rotate Left", RotateLeft);
+        actions.Add("Rotate Right", RotateRight);
     }
 
     private void RecognizedSpeech(PhraseRecognizedEventArgs speech){
@@ -177,6 +195,29 @@ public class PoliceUnitVoiceController : MonoBehaviour
             TopLineNum = 1,
             LeftLineNum = 2,
             RightLineNum = 3
+        });
+    }
+
+    /*
+        Movement Events Called When Voice Command Observed
+    */
+    private void MoveToIntersection(){
+        OnMoveToIntersectionCommand?.Invoke(this, EventArgs.Empty);
+    }
+    private void MoveForward(){
+        OnMoveForwardCommand?.Invoke(this, EventArgs.Empty);
+    }
+    private void Halt(){
+        OnHaltCommand?.Invoke(this, EventArgs.Empty);
+    }
+    private void RotateLeft(){
+        OnRotateCommand?.Invoke(this, new OnRotateEventArgs{
+            RotateLeft = true
+        });
+    }
+    private void RotateRight(){
+        OnRotateCommand?.Invoke(this, new OnRotateEventArgs{
+            RotateLeft = false
         });
     }
 }
