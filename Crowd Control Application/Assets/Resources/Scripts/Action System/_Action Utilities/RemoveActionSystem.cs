@@ -14,11 +14,11 @@ public class RemoveActionSystem : SystemBase {
     EntityQueryDesc removeActionQueryDec;
 
     private struct RemoveActionJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<RemoveAction> removeActionType;
-        public ArchetypeChunkBufferType<Action> actionBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<RemoveAction> removeActionType;
+        public BufferTypeHandle<Action> actionBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -66,10 +66,10 @@ public class RemoveActionSystem : SystemBase {
         EntityQuery removeActionQuery = GetEntityQuery(removeActionQueryDec); // query the entities
 
         RemoveActionJob removeJob = new RemoveActionJob{ // creates the "follow waypoints" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            removeActionType = GetArchetypeChunkComponentType<RemoveAction>(),
-            actionBufferType = GetArchetypeChunkBufferType<Action>()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            removeActionType = GetComponentTypeHandle<RemoveAction>(),
+            actionBufferType = GetBufferTypeHandle<Action>()
 
         };
         JobHandle jobHandle = removeJob.Schedule(removeActionQuery, this.Dependency);

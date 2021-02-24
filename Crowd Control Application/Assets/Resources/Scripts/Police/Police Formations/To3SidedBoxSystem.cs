@@ -18,12 +18,12 @@ public class To3SidedBoxSystem : SystemBase {
 
     // the job used when it is the front police line
     private struct ToBoxFrontJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<To3SidedBoxFormComponent> toBoxType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -54,12 +54,12 @@ public class To3SidedBoxSystem : SystemBase {
     }
     // the job used when it is the center police line
     private struct ToBoxCenterJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<To3SidedBoxFormComponent> toBoxType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -90,12 +90,12 @@ public class To3SidedBoxSystem : SystemBase {
     }
     // the job used when it is the front police line
     private struct ToBoxRearJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<To3SidedBoxFormComponent> toBoxType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -165,27 +165,27 @@ public class To3SidedBoxSystem : SystemBase {
         EntityQuery rearQuery = GetEntityQuery(toBoxRearQueryDec); // query the entities
 
         ToBoxFrontJob frontJob = new ToBoxFrontJob{ // creates the to 3 sided box front job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toBoxType = GetArchetypeChunkComponentType<To3SidedBoxFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
         };
         JobHandle frontJobHandle = frontJob.Schedule(frontQuery, this.Dependency);
         ToBoxCenterJob centerJob = new ToBoxCenterJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toBoxType = GetArchetypeChunkComponentType<To3SidedBoxFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
         };
         JobHandle centerJobHandle = centerJob.Schedule(centerQuery, frontJobHandle);
         ToBoxRearJob rearJob = new ToBoxRearJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toBoxType = GetArchetypeChunkComponentType<To3SidedBoxFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
         };
         JobHandle rearJobHandle = rearJob.Schedule(rearQuery, centerJobHandle);
 

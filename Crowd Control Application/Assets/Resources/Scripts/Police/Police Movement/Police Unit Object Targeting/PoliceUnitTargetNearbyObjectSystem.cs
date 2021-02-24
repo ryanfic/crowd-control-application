@@ -51,10 +51,10 @@ public class PoliceUnitTargetNearbyObjectSystem : SystemBase
     [BurstCompile]
     private struct FindNearestIntersectionJob : IJobChunk {
         [ReadOnly] public NativeMultiHashMap<int, StationaryQuadrantData> stationaryQuadrantMultiHashMap; // uses information from the stationary quadrant hash map to find nearby crowd agents
-        public EntityCommandBuffer.Concurrent commandBuffer;
+        public EntityCommandBuffer.ParallelWriter commandBuffer;
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -117,9 +117,9 @@ public class PoliceUnitTargetNearbyObjectSystem : SystemBase
     //A job for adding the "find nearest intersection" tag to all selected police units
     [BurstCompile]
     private struct AddFindNearestIntersectionTagJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent commandBuffer;
+        public EntityCommandBuffer.ParallelWriter commandBuffer;
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
+        [ReadOnly] public EntityTypeHandle entityType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -132,15 +132,15 @@ public class PoliceUnitTargetNearbyObjectSystem : SystemBase
     }
 
     protected override void OnUpdate(){
-        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
 
         EntityQuery nearbyIntersectionQuery = GetEntityQuery(nearbyIntersectionQueryDesc); // query the entities
 
         FindNearestIntersectionJob nearestIntersectionJob = new FindNearestIntersectionJob{ 
             stationaryQuadrantMultiHashMap = StationaryQuadrantSystem.quadrantMultiHashMap,
             commandBuffer = commandBuffer,
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(true)
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(true)
         };
         JobHandle findIntersectionJobHandle = nearestIntersectionJob.Schedule(nearbyIntersectionQuery, this.Dependency); //schedule the job
 
@@ -155,7 +155,7 @@ public class PoliceUnitTargetNearbyObjectSystem : SystemBase
             //Add label job
             AddFindNearestIntersectionTagJob addFindIntersectionTagJob = new AddFindNearestIntersectionTagJob{ 
                 commandBuffer = commandBuffer,
-                entityType =  GetArchetypeChunkEntityType()
+                entityType =  GetEntityTypeHandle()
             };
             JobHandle intersectionTagJobHandle = addFindIntersectionTagJob.Schedule(addFindIntersectionTagQuery, this.Dependency ); //schedule the job
             commandBufferSystem.AddJobHandleForProducer(intersectionTagJobHandle); // make sure the components get added/removed for the job
@@ -169,12 +169,12 @@ public class PoliceUnitTargetNearbyObjectSystem : SystemBase
         //toldToFindIntersection = true;
         //this.OnUpdate();
 
-        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
         EntityQuery addFindIntersectionTagQuery = GetEntityQuery(addFindIntersectionQueryDesc); // query the entities
             //Add label job
         AddFindNearestIntersectionTagJob addFindIntersectionTagJob = new AddFindNearestIntersectionTagJob{ 
             commandBuffer = commandBuffer,
-            entityType =  GetArchetypeChunkEntityType()
+            entityType =  GetEntityTypeHandle()
         };
         JobHandle intersectionTagJobHandle = addFindIntersectionTagJob.Schedule(addFindIntersectionTagQuery, this.Dependency /*findIntersectionJobHandle*/); //schedule the job
         commandBufferSystem.AddJobHandleForProducer(intersectionTagJobHandle); // make sure the components get added/removed for the job

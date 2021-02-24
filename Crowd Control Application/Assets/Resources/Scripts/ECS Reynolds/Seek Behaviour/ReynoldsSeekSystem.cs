@@ -16,9 +16,9 @@ public class ReynoldsSeekSystem : SystemBase
 
     [BurstCompile]
     private struct SeekBehaviourJob : IJobChunk {      
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<ReynoldsMovementValues> reynoldsMovementValuesType;
-        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> seekType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<ReynoldsMovementValues> reynoldsMovementValuesType;
+        [ReadOnly] public ComponentTypeHandle<HasReynoldsSeekTargetPos> seekType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
@@ -56,9 +56,9 @@ public class ReynoldsSeekSystem : SystemBase
         EntityQuery seekQuery = GetEntityQuery(seekQueryDec); // query the entities
 
         SeekBehaviourJob seekBehaviourJob = new SeekBehaviourJob{
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            reynoldsMovementValuesType = GetArchetypeChunkComponentType<ReynoldsMovementValues>(),
-            seekType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(true)
+            translationType = GetComponentTypeHandle<Translation>(true),
+            reynoldsMovementValuesType = GetComponentTypeHandle<ReynoldsMovementValues>(),
+            seekType = GetComponentTypeHandle<HasReynoldsSeekTargetPos>(true)
         };
         JobHandle jobHandle = seekBehaviourJob.Schedule(seekQuery, this.Dependency);
         this.Dependency = jobHandle;

@@ -41,7 +41,7 @@ public class DOTSEvents_NextFrame<T> where T : struct, IComponentData {
     public struct EventTrigger {
 
         private struct EventJob : IJobForEachWithEntity<T> {
-            public EntityCommandBuffer.Concurrent entityCommandBufferConcurrent;
+            public EntityCommandBuffer.ParallelWriter entityCommandBufferConcurrent;
             public NativeList<T> nativeList;
 
             public void Execute(Entity entity, int index, ref T c0) {
@@ -50,12 +50,12 @@ public class DOTSEvents_NextFrame<T> where T : struct, IComponentData {
             }
         }
 
-        private EntityCommandBuffer.Concurrent entityCommandBufferConcurrent;
+        private EntityCommandBuffer.ParallelWriter entityCommandBufferConcurrent;
         private EntityArchetype entityArchetype;
 
         public EventTrigger(EntityArchetype entityArchetype, EntityCommandBuffer entityCommandBuffer) {
             this.entityArchetype = entityArchetype;
-            entityCommandBufferConcurrent = entityCommandBuffer.ToConcurrent();
+            entityCommandBufferConcurrent = entityCommandBuffer.AsParallelWriter();
         }
 
         public void TriggerEvent(int entityInQueryIndex) {
@@ -72,7 +72,7 @@ public class DOTSEvents_NextFrame<T> where T : struct, IComponentData {
             if (eventEntityQuery.CalculateEntityCount() > 0) {
                 NativeList<T> nativeList = new NativeList<T>(Allocator.TempJob);
                 new EventJob {
-                    entityCommandBufferConcurrent = destroyEntityCommandBuffer.ToConcurrent(),
+                    entityCommandBufferConcurrent = destroyEntityCommandBuffer.AsParallelWriter(),
                     nativeList = nativeList,
                 }.Run(eventEntityQuery);
 
@@ -121,13 +121,13 @@ public class DOTSEvents_SameFrame<T> where T : struct, IComponentData {
 
     public struct EventTrigger {
 
-        private EntityCommandBuffer.Concurrent entityCommandBufferConcurrent;
+        private EntityCommandBuffer.ParallelWriter entityCommandBufferConcurrent;
         private EntityArchetype entityArchetype;
 
         public EventTrigger(EntityArchetype entityArchetype, out EntityCommandBuffer entityCommandBuffer) {
             this.entityArchetype = entityArchetype;
             entityCommandBuffer = new EntityCommandBuffer(Allocator.TempJob);
-            entityCommandBufferConcurrent = entityCommandBuffer.ToConcurrent();
+            entityCommandBufferConcurrent = entityCommandBuffer.AsParallelWriter();
         }
 
         public void TriggerEvent(int entityInQueryIndex) {

@@ -14,17 +14,17 @@ public class AddActionSystem : SystemBase {
     private EntityQueryDesc addActionQueryDesc;
 
     private struct AddActionJob: IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         /*[DeallocateOnJobCompletion] public NativeArray<Entity> entityArray;
         [DeallocateOnJobCompletion] public NativeArray<CurrentAction> curActionArray;
         public BufferFromEntity<Action> buffers;*/
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<CurrentAction> curActionType;
-        public ArchetypeChunkComponentType<AddFollowWayPointsAction> addFollowWPActionType;
-        public ArchetypeChunkComponentType<AddGoHomeAction> addGoHomeActionType;
-        public ArchetypeChunkComponentType<AddGoToAndWaitAction> addGoToAndWaitActionType;
-        public ArchetypeChunkBufferType<Action> actionBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<CurrentAction> curActionType;
+        public ComponentTypeHandle<AddFollowWayPointsAction> addFollowWPActionType;
+        public ComponentTypeHandle<AddGoHomeAction> addGoHomeActionType;
+        public ComponentTypeHandle<AddGoToAndWaitAction> addGoToAndWaitActionType;
+        public BufferTypeHandle<Action> actionBufferType;
         
 
         //[DeallocateOnJobCompletion]
@@ -138,7 +138,7 @@ public class AddActionSystem : SystemBase {
     }
 
     /*private struct AddFollowWayPointsActionJob : IJobForEachWithEntity_EBCC<Action,AddFollowWayPointsAction,CurrentAction> {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
         public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref AddFollowWayPointsAction toAdd, ref CurrentAction current){
             int pos = 0; // where the action should be added
@@ -183,7 +183,7 @@ public class AddActionSystem : SystemBase {
     }
 
     private struct AddGoHomeActionJob : IJobForEachWithEntity_EBCC<Action,AddGoHomeAction,CurrentAction> {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
         public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref AddGoHomeAction toAdd, ref CurrentAction current){
             int pos = 0; // where the action should be added
@@ -228,7 +228,7 @@ public class AddActionSystem : SystemBase {
     }
 
     private struct AddGoToAndWaitActionJob : IJobForEachWithEntity_EBCC<Action,AddGoToAndWaitAction,CurrentAction> {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public void Execute(Entity entity, int index, DynamicBuffer<Action> actions, ref AddGoToAndWaitAction toAdd, ref CurrentAction current){
             int pos = 0; // where the action should be added
              // find the index where the action should be added
@@ -291,13 +291,13 @@ public class AddActionSystem : SystemBase {
         EntityQuery addActionQuery = GetEntityQuery(addActionQueryDesc); //Query the entities with the correct components
 
         AddActionJob addActionJob = new AddActionJob {
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType = GetArchetypeChunkEntityType(),
-            curActionType = GetArchetypeChunkComponentType<CurrentAction>(),
-            addFollowWPActionType = GetArchetypeChunkComponentType<AddFollowWayPointsAction>(),
-            addGoHomeActionType = GetArchetypeChunkComponentType<AddGoHomeAction>(),
-            addGoToAndWaitActionType = GetArchetypeChunkComponentType<AddGoToAndWaitAction>(),
-            actionBufferType = GetArchetypeChunkBufferType<Action>()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType = GetEntityTypeHandle(),
+            curActionType = GetComponentTypeHandle<CurrentAction>(),
+            addFollowWPActionType = GetComponentTypeHandle<AddFollowWayPointsAction>(),
+            addGoHomeActionType = GetComponentTypeHandle<AddGoHomeAction>(),
+            addGoToAndWaitActionType = GetComponentTypeHandle<AddGoToAndWaitAction>(),
+            actionBufferType = GetBufferTypeHandle<Action>()
         };
 
         JobHandle addActionHandle = addActionJob.Schedule(addActionQuery, this.Dependency);
@@ -318,21 +318,21 @@ public class AddActionSystem : SystemBase {
        
        
         /*AddFollowWayPointsActionJob addFollowWPJob = new AddFollowWayPointsActionJob{ // creates the "follow waypoints" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter()
         };
         JobHandle followJobHandle = addFollowWPJob.Schedule(this, inputDeps);
 
         commandBufferSystem.AddJobHandleForProducer(followJobHandle); // tell the system to execute the command buffer after the job has been completed
 
         AddGoHomeActionJob addGoHomeJob = new AddGoHomeActionJob{ // creates the "Go home" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter()
         };
         JobHandle goJobHandle = addGoHomeJob.Schedule(this, followJobHandle);
 
         commandBufferSystem.AddJobHandleForProducer(goJobHandle); // tell the system to execute the command buffer after the job has been completed
 
         AddGoToAndWaitActionJob addGoWaitJob = new AddGoToAndWaitActionJob{ // creates the "Go and wait" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter()
         };
         JobHandle goWaitJobHandle = addGoWaitJob.Schedule(this, goJobHandle);
 

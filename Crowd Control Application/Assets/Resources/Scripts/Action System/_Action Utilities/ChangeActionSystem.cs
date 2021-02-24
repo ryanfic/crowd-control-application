@@ -15,11 +15,11 @@ public class ChangeActionSystem : SystemBase {
     private EntityQueryDesc changeActionQueryDec;
 
     private struct ChangeActionJob : IJobChunk{
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<CurrentAction> curActionType;
-        public ArchetypeChunkBufferType<Action> actionBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<CurrentAction> curActionType;
+        public BufferTypeHandle<Action> actionBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -88,10 +88,10 @@ public class ChangeActionSystem : SystemBase {
         EntityQuery changeActionQuery = GetEntityQuery(changeActionQueryDec); // query the entities
 
         ChangeActionJob changeJob = new ChangeActionJob{ // creates the change action job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            curActionType = GetArchetypeChunkComponentType<CurrentAction>(),
-            actionBufferType = GetArchetypeChunkBufferType<Action>()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            curActionType = GetComponentTypeHandle<CurrentAction>(),
+            actionBufferType = GetBufferTypeHandle<Action>()
         };
         JobHandle jobHandle = changeJob.Schedule(changeActionQuery, this.Dependency);
 

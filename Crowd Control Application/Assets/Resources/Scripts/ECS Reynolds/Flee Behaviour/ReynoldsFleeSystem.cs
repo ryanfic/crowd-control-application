@@ -14,10 +14,10 @@ public class ReynoldsFleeSystem : SystemBase
 
     [BurstCompile]
     private struct FleeBehaviourJob : IJobChunk {      
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<ReynoldsMovementValues> reynoldsMovementValuesType;
-        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsFleeTargetPos> fleeType;
-        [ReadOnly] public ArchetypeChunkComponentType<ReynoldsFleeSafeDistance> safeDistType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<ReynoldsMovementValues> reynoldsMovementValuesType;
+        [ReadOnly] public ComponentTypeHandle<HasReynoldsFleeTargetPos> fleeType;
+        [ReadOnly] public ComponentTypeHandle<ReynoldsFleeSafeDistance> safeDistType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
@@ -70,10 +70,10 @@ public class ReynoldsFleeSystem : SystemBase
         EntityQuery fleeQuery = GetEntityQuery(fleeQueryDec); // query the entities
 
         FleeBehaviourJob fleeBehaviourJob = new FleeBehaviourJob{
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            reynoldsMovementValuesType = GetArchetypeChunkComponentType<ReynoldsMovementValues>(),
-            fleeType = GetArchetypeChunkComponentType<HasReynoldsFleeTargetPos>(true),
-            safeDistType = GetArchetypeChunkComponentType<ReynoldsFleeSafeDistance>(true)
+            translationType = GetComponentTypeHandle<Translation>(true),
+            reynoldsMovementValuesType = GetComponentTypeHandle<ReynoldsMovementValues>(),
+            fleeType = GetComponentTypeHandle<HasReynoldsFleeTargetPos>(true),
+            safeDistType = GetComponentTypeHandle<ReynoldsFleeSafeDistance>(true)
         };
         JobHandle jobHandle = fleeBehaviourJob.Schedule(fleeQuery, this.Dependency);
 

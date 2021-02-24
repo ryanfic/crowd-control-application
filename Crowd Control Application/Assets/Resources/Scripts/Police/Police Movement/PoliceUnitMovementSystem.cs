@@ -19,7 +19,7 @@ public class PoliceUnitMovementSystem : SystemBase
     }
     protected override void OnUpdate(){
         float deltaTime = Time.DeltaTime;
-        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
 
         //Movement of Police Towards a particular destination via Police Unit Movement Destination
         JobHandle destinationJobHandle = Entities

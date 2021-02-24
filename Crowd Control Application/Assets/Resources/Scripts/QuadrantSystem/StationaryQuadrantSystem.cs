@@ -92,7 +92,7 @@ public class StationaryQuadrantSystem : SystemBase
         [DeallocateOnJobCompletion] public NativeArray<Translation> translations; // where the entity is
         [DeallocateOnJobCompletion] public NativeArray<StationaryQuadrantEntity> quadEntTypes; // what type of stationary quadrant entity the entity is
 
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public void Execute(int i){
             int hashMapKey = GetPositionHashMapKey(translations[i].Value); //get the entity's hashmap key
             quadrantMultiHashMap.Add(hashMapKey, new StationaryQuadrantData{
@@ -109,7 +109,7 @@ public class StationaryQuadrantSystem : SystemBase
     private struct AddStationaryQuadrantEntityToMapJob : IJobForEachWithEntity<Translation, StationaryQuadrantEntity, AddStationaryQuadrantEntity>{
         public NativeMultiHashMap<int, StationaryQuadrantData>.ParallelWriter quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
                                                                     //a reference to the hashmap in question
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public void Execute(Entity entity, int index, [ReadOnly] ref Translation translation, [ReadOnly] ref StationaryQuadrantEntity quadrantEnt, [ReadOnly] ref AddStationaryQuadrantEntity addEntityComponent){
             int hashMapKey = GetPositionHashMapKey(translation.Value); //get the entity's hashmap key
             quadrantMultiHashMap.Add(hashMapKey, new StationaryQuadrantData{
@@ -206,7 +206,7 @@ public class StationaryQuadrantSystem : SystemBase
             entities = addEntityArray,
             translations = addTransArray,
             quadEntTypes = addStatQuadEntArray,
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter()
         };
         /*JobHandle removeJobHandle = JobForEachExtensions.Schedule(removeEntityFromMapJob, removeEntityQuery);
         commandBufferSystem.AddJobHandleForProducer(removeJobHandle); // tell the system to execute the command buffer after the job has been completed*/
@@ -288,7 +288,7 @@ public class StationaryQuadrantSystem : SystemBase
     private struct AddStationaryQuadrantEntityToMapJob : IJobForEachWithEntity<Translation, StationaryQuadrantEntity, AddStationaryQuadrantEntity>{
         public NativeMultiHashMap<int, StationaryQuadrantData>.ParallelWriter quadrantMultiHashMap; //job is about putting things into the hashmap, so we need
                                                                     //a reference to the hashmap in question
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public void Execute(Entity entity, int index, ref Translation translation, ref StationaryQuadrantEntity quadrantEnt, [ReadOnly] ref AddStationaryQuadrantEntity addEntityComponent){
             int hashMapKey = GetPositionHashMapKey(translation.Value); //get the entity's hashmap key
             quadrantMultiHashMap.Add(hashMapKey, new StationaryQuadrantData{
@@ -368,7 +368,7 @@ public class StationaryQuadrantSystem : SystemBase
         //selects all entities with a translation component and the 'add to stationary quadrant tag' and adds them to the hashmap
 /*        AddStationaryQuadrantEntityToMapJob addEntityToMapJob = new AddStationaryQuadrantEntityToMapJob{
             quadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(), //Asparallelwriter used to allow for concurrent writing
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter()
         };
         /*JobHandle removeJobHandle = JobForEachExtensions.Schedule(removeEntityFromMapJob, removeEntityQuery);
         commandBufferSystem.AddJobHandleForProducer(removeJobHandle); // tell the system to execute the command buffer after the job has been completed*/

@@ -15,14 +15,14 @@ public class GoToAndWaitSystem : SystemBase
     private EntityQueryDesc gTAWQueryDec;
 
     private struct GoToAndWaitJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         public float time;
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> reynoldsType;
-        public ArchetypeChunkComponentType<GoToAndWaitAction> gTAWType;
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
-        [ReadOnly] public ArchetypeChunkBufferType<Action> actionBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        [ReadOnly] public ComponentTypeHandle<HasReynoldsSeekTargetPos> reynoldsType;
+        public ComponentTypeHandle<GoToAndWaitAction> gTAWType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
+        [ReadOnly] public BufferTypeHandle<Action> actionBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -105,13 +105,13 @@ public class GoToAndWaitSystem : SystemBase
         EntityQuery gTAWQuery = GetEntityQuery(gTAWQueryDec); // query the entities
 
         GoToAndWaitJob gtawJob = new GoToAndWaitJob{ // creates the "go to and wait" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
             time = curTime,
-            entityType =  GetArchetypeChunkEntityType(),
-            reynoldsType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(true),
-            gTAWType = GetArchetypeChunkComponentType<GoToAndWaitAction>(),
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            actionBufferType = GetArchetypeChunkBufferType<Action>(true)
+            entityType =  GetEntityTypeHandle(),
+            reynoldsType = GetComponentTypeHandle<HasReynoldsSeekTargetPos>(true),
+            gTAWType = GetComponentTypeHandle<GoToAndWaitAction>(),
+            translationType = GetComponentTypeHandle<Translation>(true),
+            actionBufferType = GetBufferTypeHandle<Action>(true)
         };
         JobHandle jobHandle = gtawJob.Schedule(gTAWQuery, this.Dependency);
 

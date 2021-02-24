@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.Windows.Speech;
 using System.Linq;
 using System;
+using Unity.Entities;
 
 public class OnToFilterCordonEventArgs : EventArgs{
     public bool StepLeft;
@@ -16,11 +17,17 @@ public class OnTo3SidedBoxEventArgs : EventArgs{
 public class OnRotateEventArgs : EventArgs{
     public bool RotateLeft;
 }
+public class OnPoliceUnitSelectionEventArgs : EventArgs{
+    public string UnitName;
+}
 
 public class PoliceUnitVoiceController : MonoBehaviour
 {
+    public static string AllUnitSelectName = "*AllUnits";
+
     private KeywordRecognizer keywordRecognizer;
     private Dictionary<string, Action> actions = new Dictionary<string, Action>();
+    private Dictionary<string, Action<string>> policeUnitNameActions = new Dictionary<string, Action<string>>();
 
     //Cordon Command Events
     public event EventHandler OnToLooseCordonVoiceCommand;
@@ -46,6 +53,10 @@ public class PoliceUnitVoiceController : MonoBehaviour
     public event EventHandler OnHaltCommand;
     public event EventHandler<OnRotateEventArgs> OnRotateCommand;
 
+    //Unit Selection Command Events
+    public event EventHandler<OnPoliceUnitSelectionEventArgs> OnPoliceUnitSelectionCommand;
+    public event EventHandler OnDeselectPoliceUnitsCommand;
+
 
     void Start()
     {
@@ -55,7 +66,26 @@ public class PoliceUnitVoiceController : MonoBehaviour
         //Add actions for movement
         AddMovementCommands();
 
-        keywordRecognizer = new KeywordRecognizer(actions.Keys.ToArray(),ConfidenceLevel.Low);
+        //Add actions for police unit selection
+        AddSelectionCommands();
+
+        //Set up the keyword recognizer
+        SetUpKeywordRecognizer();
+
+        //subscribe to events from jobs
+        //subscribe to police units added events
+        PoliceUnitJustCreatedSystem policeUnitCreatedSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceUnitJustCreatedSystem>();
+        policeUnitCreatedSystem.OnPoliceUnitCreatedWithName += PoliceUnitCreatedResponse;
+
+        //subscribe to police units deleted events
+        PoliceUnitToDeleteSystem policeUnitDeleteSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceUnitToDeleteSystem>();
+        policeUnitDeleteSystem.OnPoliceUnitDeletedWithName += PoliceUnitDeletedResponse;
+    }
+
+    private void SetUpKeywordRecognizer(){
+        string[] commandKeys = actions.Keys.ToArray().Concat(policeUnitNameActions.Keys.ToArray()).ToArray();
+        keywordRecognizer?.Dispose();
+        keywordRecognizer = new KeywordRecognizer(commandKeys,ConfidenceLevel.Low);
         keywordRecognizer.OnPhraseRecognized += RecognizedSpeech;
         keywordRecognizer.Start();
     }
@@ -115,9 +145,26 @@ public class PoliceUnitVoiceController : MonoBehaviour
         actions.Add("Rotate Right", RotateRight);
     }
 
+    private void AddSelectionCommands(){
+        //Select all police units
+        actions.Add("All Units", SelectAllPoliceUnits);
+
+        //Deselect all police units
+        actions.Add("Deselect Units", DeselectAllPoliceUnits);
+    }
+
     private void RecognizedSpeech(PhraseRecognizedEventArgs speech){
         Debug.Log(speech.text);
-        actions[speech.text].Invoke();
+        InvokeAction(speech.text);
+    }
+
+    private void InvokeAction(string commandKey){
+        if(actions.ContainsKey(commandKey)){
+            actions[commandKey].Invoke();
+        }
+        else { // if the command was not in the other command dictionary, must be in the police unit name dictionary
+            policeUnitNameActions[commandKey](commandKey);
+        }   
     }
 
 
@@ -220,4 +267,65 @@ public class PoliceUnitVoiceController : MonoBehaviour
             RotateLeft = false
         });
     }
+
+    /*
+        Event Triggering Functions called when a Police Unit's Name is called
+    */
+    private void SelectAllPoliceUnits(){
+        OnPoliceUnitSelectionCommand?.Invoke(this, new OnPoliceUnitSelectionEventArgs{
+            UnitName = AllUnitSelectName
+        });
+    }
+
+    private void DeselectAllPoliceUnits(){
+        OnDeselectPoliceUnitsCommand?.Invoke(this, EventArgs.Empty);
+    }
+
+    private void SelectPoliceUnit(string unitName){
+        OnPoliceUnitSelectionCommand?.Invoke(this, new OnPoliceUnitSelectionEventArgs{
+            UnitName = unitName
+        });
+    }
+
+    /*
+        Methods responding to police creation / deletion events
+    */
+    private void PoliceUnitCreatedResponse(object sender, OnPoliceUnitCreatedWithNameArgs eventArgs){
+        AddPoliceUnitNameCommand(eventArgs.PoliceUnitName);
+
+    }
+    //Add a police unit name to the list of commands
+    private void AddPoliceUnitNameCommand(string unitName){
+        //check if the name is a command already
+        if(!policeUnitNameActions.ContainsKey(unitName)){
+            //if not, add the police unit name to the list of commands
+            policeUnitNameActions.Add(unitName,SelectPoliceUnit);
+            SetUpKeywordRecognizer();
+            Debug.Log(unitName + " was added to the list of police unit name commands");
+        }
+        else{
+            Debug.Log(unitName + " is already a command, so it was not added to the commands.");
+        }
+    }
+
+    //Responds to the event where police units are deleted
+    private void PoliceUnitDeletedResponse(object sender, OnPoliceUnitDeletedWithNameArgs eventArgs){
+        RemovePoliceUnitNameCommand(eventArgs.PoliceUnitName);
+
+    }
+    //Remove a police unit name from the list of commands
+    private void RemovePoliceUnitNameCommand(String unitName){
+        //check if the name is a command
+        if(policeUnitNameActions.ContainsKey(unitName)){
+            //if the name is a command, remove the police unit name from the list of commands
+            policeUnitNameActions.Remove(unitName);
+            SetUpKeywordRecognizer();
+            Debug.Log(unitName + " was removed from the list of police unit name commands");
+        }
+        else{
+            Debug.Log(unitName + " is not already a command, so it was not removed from the commands.");
+        }
+    }
+
+    
 }

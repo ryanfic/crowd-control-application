@@ -27,7 +27,7 @@ public class PipeDestroySystem : JobComponentSystem {
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps) {
-        EntityCommandBuffer.Concurrent entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent();
+        EntityCommandBuffer.ParallelWriter entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter();
 
         float destroyXPosition = -10f;
         JobHandle jobHandle = Entities.WithAll<Pipe>().ForEach((int entityInQueryIndex, Entity entity, ref Translation translation) => {

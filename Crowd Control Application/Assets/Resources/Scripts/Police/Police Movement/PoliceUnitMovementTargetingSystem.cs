@@ -25,7 +25,7 @@ public class PoliceUnitMovementTargetingSystem : SystemBase {
     protected override void OnUpdate(){
         if(rightUpTriggered){  // if right mouse is released set up destination
             float3 destination = Target;
-            EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
             JobHandle destinationHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
                 .ForEach((Entity policeUnit, int entityInQueryIndex)=>{    

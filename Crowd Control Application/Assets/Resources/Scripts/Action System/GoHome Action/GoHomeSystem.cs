@@ -15,13 +15,13 @@ public class GoHomeSystem : SystemBase
     private EntityQueryDesc goHomeQueryDec;
 
     private struct GoHomeJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        [ReadOnly] public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> reynoldsType;
-        [ReadOnly] public ArchetypeChunkComponentType<GoHomeAction> goHomeType;
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
-        [ReadOnly] public ArchetypeChunkBufferType<Action> actionBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        [ReadOnly] public ComponentTypeHandle<HasReynoldsSeekTargetPos> reynoldsType;
+        [ReadOnly] public ComponentTypeHandle<GoHomeAction> goHomeType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
+        [ReadOnly] public BufferTypeHandle<Action> actionBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -90,12 +90,12 @@ public class GoHomeSystem : SystemBase
         EntityQuery goHomeQuery = GetEntityQuery(goHomeQueryDec); // query the entities
 
         GoHomeJob homeJob = new GoHomeJob{ // creates the "go home" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            reynoldsType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(true),
-            goHomeType = GetArchetypeChunkComponentType<GoHomeAction>(true),
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            actionBufferType = GetArchetypeChunkBufferType<Action>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            reynoldsType = GetComponentTypeHandle<HasReynoldsSeekTargetPos>(true),
+            goHomeType = GetComponentTypeHandle<GoHomeAction>(true),
+            translationType = GetComponentTypeHandle<Translation>(true),
+            actionBufferType = GetBufferTypeHandle<Action>(true)
         };
         JobHandle jobHandle = homeJob.Schedule(goHomeQuery, this.Dependency);
 

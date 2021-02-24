@@ -19,9 +19,9 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
     //A job for adding the "Move forward" tag to all selected police units
     [BurstCompile]
     private struct AddMoveForwardTagJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent commandBuffer;
+        public EntityCommandBuffer.ParallelWriter commandBuffer;
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
+        [ReadOnly] public EntityTypeHandle entityType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -37,10 +37,10 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
     //A job for adding the "Rotate" tag to all selected police units
     [BurstCompile]
     private struct AddRotateTagJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent commandBuffer;
+        public EntityCommandBuffer.ParallelWriter commandBuffer;
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        [DeallocateOnJobCompletion] public NativeArray<bool> leftTurn;
+        [ReadOnly] public EntityTypeHandle entityType;
+        [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<bool> leftTurn;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -79,12 +79,12 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
     protected override void OnUpdate(){}
 
     private void VoiceMoveForwardResponse(object sender, System.EventArgs eventArgs){
-        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
         EntityQuery addFwdMvmntTagQuery = GetEntityQuery(addContMovementQueryDesc); // query the entities
             //Add label job
         AddMoveForwardTagJob addMoveForwardTagJob = new AddMoveForwardTagJob{ 
             commandBuffer = commandBuffer,
-            entityType =  GetArchetypeChunkEntityType()
+            entityType =  GetEntityTypeHandle()
         };
         JobHandle fwdTagJobHandle = addMoveForwardTagJob.Schedule(addFwdMvmntTagQuery, this.Dependency); //schedule the job
         commandBufferSystem.AddJobHandleForProducer(fwdTagJobHandle); // make sure the components get added/removed for the job
@@ -92,7 +92,7 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
     }
 
     private void VoiceRotateResponse(object sender, OnRotateEventArgs eventArgs){
-        EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+        EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
         EntityQuery addRotateTagQuery = GetEntityQuery(addContMovementQueryDesc); // query the entities
         NativeArray<bool> rotateLeft = new NativeArray<bool>(1,Allocator.TempJob);
         rotateLeft[0] = eventArgs.RotateLeft;
@@ -100,7 +100,7 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
             //Add label job
         AddRotateTagJob addRotateTagJob = new AddRotateTagJob{ 
             commandBuffer = commandBuffer,
-            entityType =  GetArchetypeChunkEntityType(),
+            entityType =  GetEntityTypeHandle(),
             leftTurn = rotateLeft
         };
         JobHandle rotateTagJobHandle = addRotateTagJob.Schedule(addRotateTagQuery, this.Dependency); //schedule the job

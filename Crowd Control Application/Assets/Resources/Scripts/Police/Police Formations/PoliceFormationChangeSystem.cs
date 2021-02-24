@@ -45,7 +45,7 @@ public class PoliceFormationChangeSystem : SystemBase {
         if(ToLooseCordon){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
-            EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
             JobHandle cordonHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
                 .ForEach((Entity policeUnit, int entityInQueryIndex, in PoliceUnitDimensions dimensions , in DynamicBuffer<Child> children)=>{
@@ -68,7 +68,7 @@ public class PoliceFormationChangeSystem : SystemBase {
         else if(To3SidedBox){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
-            EntityCommandBuffer.Concurrent commandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(); // create a command buffer
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
             JobHandle boxHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
                 .ForEach((Entity policeUnit, int entityInQueryIndex, in PoliceUnitDimensions dimensions, in DynamicBuffer<Child> children)=>{

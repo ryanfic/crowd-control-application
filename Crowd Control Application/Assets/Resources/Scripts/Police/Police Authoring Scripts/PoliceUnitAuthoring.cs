@@ -56,7 +56,13 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             Entity holderEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(LineHolder,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
 
-            dstManager.SetName(entity,"Police Unit " + UnitName);
+            dstManager.SetName(entity, UnitName);
+            dstManager.AddComponentData<PoliceUnitName>(entity, new PoliceUnitName{
+                String = UnitName
+            });
+            dstManager.AddComponent<PoliceUnitJustCreated>(entity);
+
+            dstManager.AddBuffer<LinkedEntityGroup>(entity);
 
             //Set up the front line
             Entity line1 = CreatePoliceLine(policeLine, policeOfficer, holderEntity, entity, dstManager, PoliceLine.Front, 1);
@@ -95,27 +101,29 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                 dstManager.AddComponent<RearPoliceLineComponent>(policeLine);
                 break;
         }
+        dstManager.GetBuffer<LinkedEntityGroup>(policeUnit).Add(policeLine); // add the police line to the list of entities linked to the police unit
         // Set up a blocker that acts as the physical body that the police line collides with other objects with
         Entity blocker = dstManager.Instantiate(linePrefab);
         dstManager.SetName(blocker,"Police Line " + lineNumber + " Blocker");
         dstManager.AddComponentData<Parent>(blocker, new Parent{Value = policeLine});
         dstManager.AddComponentData<LocalToParent>(blocker, new LocalToParent());
         dstManager.AddComponentData<Translation>(blocker, new Translation{Value = new float3(0f,0f,0f)});
-        CreatePoliceOfficers(officerPrefab, policeLine, dstManager);
+        dstManager.GetBuffer<LinkedEntityGroup>(policeUnit).Add(blocker);
+        CreatePoliceOfficers(officerPrefab, policeUnit, policeLine, dstManager);
         return policeLine;
     }
 
     // Creates a number of police officers
     // Creates as many officers as defined in OfficersPerLine
-    private void CreatePoliceOfficers(Entity officerPrefab, Entity policeLine, EntityManager dstManager){
+    private void CreatePoliceOfficers(Entity officerPrefab, Entity policeUnit, Entity policeLine, EntityManager dstManager){
         for(int i = 0; i < OfficersPerLine; i++){
-            CreatePoliceOfficer(officerPrefab, policeLine, dstManager, i);
+            CreatePoliceOfficer(officerPrefab, policeLine, policeUnit, dstManager, i);
         }
     }
 
     // Creates a police officer
     // It is assumed that the width of a single police officer is the same as the length (or depth)
-    private void CreatePoliceOfficer(Entity officerPrefab, Entity policeLine, EntityManager dstManager, int officerNum){
+    private void CreatePoliceOfficer(Entity officerPrefab, Entity policeLine, Entity policeUnit, EntityManager dstManager, int officerNum){
         Entity policeOfficer = dstManager.Instantiate(officerPrefab);
         dstManager.SetName(policeOfficer,"Police Officer " + (officerNum+1));
         dstManager.AddComponentData<Parent>(policeOfficer, new Parent{Value = policeLine});
@@ -129,6 +137,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         }
         //Debug.Log("Offset: " + offset);
         dstManager.SetComponentData<Translation>(policeOfficer, new Translation{Value = new float3(offset,0f,0f)});
+        dstManager.GetBuffer<LinkedEntityGroup>(policeUnit).Add(policeOfficer);
     }   
 
 }

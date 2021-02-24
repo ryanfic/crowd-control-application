@@ -18,12 +18,12 @@ public class ToLooseCordonSystem : SystemBase {
 
     // the job used when it is the front police line
     private struct ToLooseCordonFrontJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<ToLooseCordonFormComponent> toLooseCordonType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<ToLooseCordonFormComponent> toLooseCordonType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -54,12 +54,12 @@ public class ToLooseCordonSystem : SystemBase {
     }
     // the job used when it is the center police line
     private struct ToLooseCordonCenterJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<ToLooseCordonFormComponent> toLooseCordonType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<ToLooseCordonFormComponent> toLooseCordonType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -90,12 +90,12 @@ public class ToLooseCordonSystem : SystemBase {
     }
     // the job used when it is the front police line
     private struct ToLooseCordonRearJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkComponentType<Rotation> rotationType;
-        [ReadOnly] public ArchetypeChunkComponentType<ToLooseCordonFormComponent> toLooseCordonType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<Translation> translationType;
+        public ComponentTypeHandle<Rotation> rotationType;
+        [ReadOnly] public ComponentTypeHandle<ToLooseCordonFormComponent> toLooseCordonType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -165,27 +165,27 @@ public class ToLooseCordonSystem : SystemBase {
         EntityQuery rearQuery = GetEntityQuery(toCordonRearQueryDec); // query the entities
 
         ToLooseCordonFrontJob frontJob = new ToLooseCordonFrontJob{ // creates the to loose cordon front job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toLooseCordonType = GetArchetypeChunkComponentType<ToLooseCordonFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toLooseCordonType = GetComponentTypeHandle<ToLooseCordonFormComponent>(true)
         };
         JobHandle frontJobHandle = frontJob.Schedule(frontQuery, this.Dependency);
         ToLooseCordonCenterJob centerJob = new ToLooseCordonCenterJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toLooseCordonType = GetArchetypeChunkComponentType<ToLooseCordonFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toLooseCordonType = GetComponentTypeHandle<ToLooseCordonFormComponent>(true)
         };
         JobHandle centerJobHandle = centerJob.Schedule(centerQuery, frontJobHandle);
         ToLooseCordonRearJob rearJob = new ToLooseCordonRearJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            translationType = GetArchetypeChunkComponentType<Translation>(),
-            rotationType = GetArchetypeChunkComponentType<Rotation>(),
-            toLooseCordonType = GetArchetypeChunkComponentType<ToLooseCordonFormComponent>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            translationType = GetComponentTypeHandle<Translation>(),
+            rotationType = GetComponentTypeHandle<Rotation>(),
+            toLooseCordonType = GetComponentTypeHandle<ToLooseCordonFormComponent>(true)
         };
         JobHandle rearJobHandle = rearJob.Schedule(rearQuery, centerJobHandle);
         

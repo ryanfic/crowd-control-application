@@ -26,15 +26,15 @@ public class ReynoldsFlockSystem : SystemBase
 
         [ReadOnly] public NativeMultiHashMap<int, MovingQuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby crowd agents
 
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
         // Jobs need an Execute function
         //ReadOnly on the Translation because the translation is not being altered
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkBufferType<ReynoldsNearbyFlockPos> nearbyBufferType;
-        [ReadOnly] public ArchetypeChunkComponentType<Translation> translationType;
-        [ReadOnly] public ArchetypeChunkComponentType<ReynoldsFlockBehaviour> flockType;
-        public ArchetypeChunkComponentType<ReynoldsMovementValues> reynoldsMovementValuesType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public BufferTypeHandle<ReynoldsNearbyFlockPos> nearbyBufferType;
+        [ReadOnly] public ComponentTypeHandle<Translation> translationType;
+        [ReadOnly] public ComponentTypeHandle<ReynoldsFlockBehaviour> flockType;
+        public ComponentTypeHandle<ReynoldsMovementValues> reynoldsMovementValuesType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -227,11 +227,11 @@ public class ReynoldsFlockSystem : SystemBase
 
         FlockBehaviourJob flockBehaviourJob = new FlockBehaviourJob{ // creates the "find nearby crowd" job
             quadrantMultiHashMap = MovingQuadrantSystem.quadrantMultiHashMap,
-            entityType = GetArchetypeChunkEntityType(),
-            nearbyBufferType = GetArchetypeChunkBufferType<ReynoldsNearbyFlockPos>(),
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            flockType = GetArchetypeChunkComponentType<ReynoldsFlockBehaviour>(true),
-            reynoldsMovementValuesType = GetArchetypeChunkComponentType<ReynoldsMovementValues>()
+            entityType = GetEntityTypeHandle(),
+            nearbyBufferType = GetBufferTypeHandle<ReynoldsNearbyFlockPos>(),
+            translationType = GetComponentTypeHandle<Translation>(true),
+            flockType = GetComponentTypeHandle<ReynoldsFlockBehaviour>(true),
+            reynoldsMovementValuesType = GetComponentTypeHandle<ReynoldsMovementValues>()
         };
         JobHandle jobHandle = flockBehaviourJob.Schedule(flockQuery, this.Dependency);
         jobHandle.Complete();

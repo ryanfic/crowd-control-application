@@ -68,7 +68,7 @@ public class FindTargetJobSystem : JobComponentSystem{
                                                                                                     //DeallocateOnJobCompletion means the nativearray gets removed when the job is done
 
         //Jobs cannot use static variables, so the Entity Command buffer needs to be passed in
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; // Holds commands that will be executed at a later time
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; // Holds commands that will be executed at a later time
                                                                     //Concurrent for concurrent writing
 
         // Jobs need an Execute function
@@ -163,7 +163,7 @@ public class FindTargetJobSystem : JobComponentSystem{
     [ExcludeComponent(typeof(HasTarget))] // The Job will NOT run on entities that have a target
     private struct AddComponentJob : IJobForEachWithEntity<Translation>{
         [DeallocateOnJobCompletion] [ReadOnly] public NativeArray<Entity> closestTargetEntityArray; // Used to assign all closest targets to seekers
-        public EntityCommandBuffer.Concurrent entityCommandBuffer;
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer;
         public void Execute(Entity entity, int index, [ReadOnly] ref Translation trans){
             if(closestTargetEntityArray[index] != Entity.Null){ // If there is a closest target for this seeker
                 entityCommandBuffer.AddComponent(index, entity, new HasTarget{ targetEntity = closestTargetEntityArray[index]});
@@ -283,7 +283,7 @@ public class FindTargetJobSystem : JobComponentSystem{
 
         AddComponentJob addComponentJob = new AddComponentJob{
             closestTargetEntityArray = closestTargetEntityArray,
-            entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent(), // Create a command buffer for the job
+            entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().AsParallelWriter(), // Create a command buffer for the job
         };
         jobHandle = addComponentJob.Schedule(this, jobHandle); // second arg is to say that it has to wait until the other job is done
         

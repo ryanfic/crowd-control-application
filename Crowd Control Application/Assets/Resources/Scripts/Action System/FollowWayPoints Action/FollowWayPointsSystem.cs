@@ -17,14 +17,14 @@ public class FollowWayPointsSystem : SystemBase
     private EntityQueryDesc followWPQueryDec;
 
     private struct FollowWayPointsJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
 
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        public ArchetypeChunkComponentType<HasReynoldsSeekTargetPos> reynoldsType;
-        public ArchetypeChunkComponentType<FollowWayPointsAction> followWPType;
-        [ReadOnly]public ArchetypeChunkComponentType<Translation> translationType;
-        public ArchetypeChunkBufferType<Action> actionBufferType;
-        public ArchetypeChunkBufferType<WayPoint> wayPointBufferType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        public ComponentTypeHandle<HasReynoldsSeekTargetPos> reynoldsType;
+        public ComponentTypeHandle<FollowWayPointsAction> followWPType;
+        [ReadOnly]public ComponentTypeHandle<Translation> translationType;
+        public BufferTypeHandle<Action> actionBufferType;
+        public BufferTypeHandle<WayPoint> wayPointBufferType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -113,13 +113,13 @@ public class FollowWayPointsSystem : SystemBase
         EntityQuery followWPQuery = GetEntityQuery(followWPQueryDec); // query the entities
 
         FollowWayPointsJob followJob = new FollowWayPointsJob{ // creates the "follow waypoints" job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            reynoldsType = GetArchetypeChunkComponentType<HasReynoldsSeekTargetPos>(),
-            followWPType = GetArchetypeChunkComponentType<FollowWayPointsAction>(),
-            translationType = GetArchetypeChunkComponentType<Translation>(true),
-            actionBufferType = GetArchetypeChunkBufferType<Action>(),
-            wayPointBufferType = GetArchetypeChunkBufferType<WayPoint>()
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            reynoldsType = GetComponentTypeHandle<HasReynoldsSeekTargetPos>(),
+            followWPType = GetComponentTypeHandle<FollowWayPointsAction>(),
+            translationType = GetComponentTypeHandle<Translation>(true),
+            actionBufferType = GetBufferTypeHandle<Action>(),
+            wayPointBufferType = GetBufferTypeHandle<WayPoint>()
         };
         JobHandle jobHandle = followJob.Schedule(followWPQuery, this.Dependency);
 

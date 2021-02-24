@@ -21,12 +21,12 @@ public class PoliceUnitRemoveMovementSystem : SystemBase {
 
     // Remove movement components job
     private struct RemoveMovementComponentsJob : IJobChunk {
-        public EntityCommandBuffer.Concurrent entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
-        [ReadOnly] public ArchetypeChunkEntityType entityType;
-        [ReadOnly] public ArchetypeChunkComponentType<PoliceUnitMovementDestination> moveDstnType;
-        [ReadOnly] public ArchetypeChunkComponentType<PoliceUnitMoveForward> moveFwdType;
-        [ReadOnly] public ArchetypeChunkComponentType<PoliceUnitContinuousRotation> moveRotType;
+        [ReadOnly] public EntityTypeHandle entityType;
+        [ReadOnly] public ComponentTypeHandle<PoliceUnitMovementDestination> moveDstnType;
+        [ReadOnly] public ComponentTypeHandle<PoliceUnitMoveForward> moveFwdType;
+        [ReadOnly] public ComponentTypeHandle<PoliceUnitContinuousRotation> moveRotType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -114,11 +114,11 @@ public class PoliceUnitRemoveMovementSystem : SystemBase {
     protected override void OnUpdate(){
         //Define the job first
         RemoveMovementComponentsJob removalJob = new RemoveMovementComponentsJob{ // creates the remove movement job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().ToConcurrent(),
-            entityType =  GetArchetypeChunkEntityType(),
-            moveDstnType = GetArchetypeChunkComponentType<PoliceUnitMovementDestination>(true),
-            moveFwdType = GetArchetypeChunkComponentType<PoliceUnitMoveForward>(true),
-            moveRotType = GetArchetypeChunkComponentType<PoliceUnitContinuousRotation>(true)
+            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+            entityType =  GetEntityTypeHandle(),
+            moveDstnType = GetComponentTypeHandle<PoliceUnitMovementDestination>(true),
+            moveFwdType = GetComponentTypeHandle<PoliceUnitMoveForward>(true),
+            moveRotType = GetComponentTypeHandle<PoliceUnitContinuousRotation>(true)
         };
         
         if(removeNotFwd){ //if removing everything except the forward movement
