@@ -24,6 +24,8 @@ public class NSERCPaperPoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectTo
     public float LineSpacing;
     public float LineLength = 1.44f; // how long the police line is, is a function of how many officers there are in a line
     public float LineWidth = 0.24f; // how much space a single officer takes up
+    public float OfficerLength = 0.24f; // how long the police officer is front to back
+    public float OfficerWidth = 0.24f; // how much space a single officer takes up (shoulder width)
     public int OfficersPerLine = 6;
     public float MaxSpeed;
     public float RotationSpeed;
@@ -47,9 +49,12 @@ public class NSERCPaperPoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectTo
                 Value = RotationSpeed
             });
             dstManager.AddComponentData<PoliceUnitDimensions>(entity, new PoliceUnitDimensions{
-                LineSpacing = LineSpacing,
-                LineLength = LineLength,
-                LineWidth = LineWidth
+                LineSpacing = LineSpacing, // the amount of space between the centerpoints of each police line (when police lines are in a row)
+                OfficerLength = OfficerLength, // How long an officer is from front to back
+                OfficerWidth = OfficerWidth, // how wide a police officer is, similar to the shoulder width of the police officer
+                NumOfficersInLine1 = OfficersPerLine, // the number of officers in the first line
+                NumOfficersInLine2 = OfficersPerLine, // the number of officers in the second line
+                NumOfficersInLine3 = OfficersPerLine, // the number of officers in the third line
             });
             if(Is3SidedBox){ // if the unit starts off as a 3 sided box
                 dstManager.AddComponentData<PoliceUnitMovementDestination>(entity, new PoliceUnitMovementDestination{
@@ -79,7 +84,7 @@ public class NSERCPaperPoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectTo
             //Set up the rear line
             Entity line3 = CreatePoliceLine(policeLine, policeOfficer, holderEntity, entity, dstManager, PoliceLine.Rear,3);
 
-            if(Is3SidedBox){
+            /*if(Is3SidedBox){
                 dstManager.AddComponentData<To3SidedBoxFormComponent>(line1, new To3SidedBoxFormComponent{ // add a component to make the unit change to a 3 sided box
                     LineSpacing = LineSpacing,
                     LineLength = LineLength,
@@ -95,7 +100,7 @@ public class NSERCPaperPoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectTo
                     LineLength = LineLength,
                     LineWidth = LineWidth
                 });
-            }
+            }*/
 
             dstManager.DestroyEntity(policeOfficer);
             dstManager.DestroyEntity(policeLine);

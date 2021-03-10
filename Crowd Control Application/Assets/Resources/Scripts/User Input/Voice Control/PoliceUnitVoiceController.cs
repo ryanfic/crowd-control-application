@@ -124,6 +124,7 @@ public class PoliceUnitVoiceController : MonoBehaviour
         actions.Add("Rear Rank Stack Left Center Rank Stack Right Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
         actions.Add("Center Rank Stack Left Rear Rank Stack Right Three Sided Box Form", To3SidedBoxRRCL);//to 3 Sided box -> rear right center left
         actions.Add("Center Rank Stack Right Rear Rank Stack Left Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
+        actions.Add("Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
         //Front line standing fast at T junctionn when entering from bottom of T
         //Standing fast at T Junction When moving across top of T
     }

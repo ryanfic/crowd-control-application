@@ -8,189 +8,124 @@ using Unity.Collections;
 
 
 // A system for changing the formation of a police unit to a 3 sided box
+
 public class To3SidedBoxSystem : SystemBase {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
-    private static float tolerance = 0.1f;
 
-    private EntityQueryDesc toBoxFrontQueryDec;
-    private EntityQueryDesc toBoxCenterQueryDec;
-    private EntityQueryDesc toBoxRearQueryDec;
+    private EntityQueryDesc toBoxQueryDesc;
 
-    // the job used when it is the front police line
-    private struct ToBoxFrontJob : IJobChunk {
-        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
+    // The job that calculates the correct translation and rotation for each police officer
+    private struct ToBoxJob : IJobChunk {
+        public EntityCommandBuffer.ParallelWriter commandBuffer; //Entity command buffer to allow adding/removing components inside the job
         
         [ReadOnly] public EntityTypeHandle entityType;
-        public ComponentTypeHandle<Translation> translationType;
-        public ComponentTypeHandle<Rotation> rotationType;
-        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
+        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> boxType;
+        [ReadOnly] public ComponentTypeHandle<PoliceOfficerNumber> officerNumType;
+        [ReadOnly] public ComponentTypeHandle<PoliceOfficerPoliceLineNumber> lineNumType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
-            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
-            NativeArray<Rotation> rotArray = chunk.GetNativeArray(rotationType);
-            NativeArray<To3SidedBoxFormComponent> toBoxArray = chunk.GetNativeArray(toBoxType);
+            NativeArray<To3SidedBoxFormComponent> boxArray = chunk.GetNativeArray(boxType);
+            NativeArray<PoliceOfficerNumber> officerNumArray = chunk.GetNativeArray(officerNumType);
+            NativeArray<PoliceOfficerPoliceLineNumber> lineNumArray = chunk.GetNativeArray(lineNumType);
 
             for(int i = 0; i < chunk.Count; i++){
                 Entity entity = entityArray[i];  
-                Translation trans = transArray[i];
-                Rotation rot = rotArray[i];
-                To3SidedBoxFormComponent toBox = toBoxArray[i];
+                To3SidedBoxFormComponent box = boxArray[i];
+                PoliceOfficerNumber officerNumber = officerNumArray[i];
+                PoliceOfficerPoliceLineNumber lineNumber = lineNumArray[i];
 
-                float3 destination = new float3(0f,0f,(toBox.LineLength/2)+(toBox.LineWidth/2)); // the front line should move ahead of the center point of the unit by half the width of a police line
-                if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                    entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(chunkIndex, entity); // remove the formation change component from the police line
+
+                int largerNumOfficers; // find the side line that has the bigger number of officers in it
+                if(box.NumOfficersInLine1 > box.NumOfficersInLine3){
+                    largerNumOfficers = box.NumOfficersInLine1;
                 }
-                else{ // if not at the destination
-                    transArray[i] = new Translation {
-                        Value = destination // move to the destination
-                    };
-                    rotArray[i] = new Rotation {
-                        Value = quaternion.RotateY(math.radians(0)) // rotate to forward
-                    };
+                else{
+                    largerNumOfficers = box.NumOfficersInLine3;
                 }
+
+                float backOfFrontLine = ((largerNumOfficers + 1f)/2f) * box.OfficerSpacing + (largerNumOfficers/2f) * box.OfficerWidth;
+
+                float xLocation;
+                float zLocation;
+                int officersInLine;
+                float3 formLocation;
+                quaternion formRot;
+
+                if(lineNumber.Value == 0){ // if on the left side of the box
+                    officersInLine = box.NumOfficersInLine1;
+                    //xLocation = -backOfFrontLine + (officerNumber.Value+1) * box.OfficerSpacing + (officerNumber.Value + 0.5f) * box.OfficerWidth;
+                    zLocation = backOfFrontLine - ((box.NumOfficersInLine1 - officerNumber.Value) *box.OfficerSpacing + (box.NumOfficersInLine1 - 1 - officerNumber.Value + 0.5f) * box.OfficerWidth);
+                    xLocation = -(((box.NumOfficersInLine2 - 1f)/2f) * (box.OfficerWidth + box.OfficerSpacing));
+                    formLocation = new float3(xLocation,0f,zLocation);
+                    formRot = quaternion.RotateY(math.radians(-90));
+                    //formLocation = math.mul(formRot,formLocation);
+                }
+                else if(lineNumber.Value == 1){ // if on the front side of the box
+                    officersInLine = box.NumOfficersInLine2;
+                    zLocation = backOfFrontLine + box.OfficerLength/2f;
+                    float leftside = -(((officersInLine-1f)/2f) * box.OfficerWidth + ((officersInLine-1f)/2f) * box.OfficerSpacing);
+                    xLocation = leftside + officerNumber.Value * box.OfficerWidth + officerNumber.Value * box.OfficerSpacing;
+                    formLocation = new float3(xLocation,0f,zLocation);
+                    formRot = quaternion.RotateY(math.radians(0));
+                }
+                else { // if on the right side of the box
+                    officersInLine = box.NumOfficersInLine3;
+                    //xLocation = backOfFrontLine - ((box.NumOfficersInLine1 - officerNumber.Value + 1) *box.OfficerSpacing + (box.NumOfficersInLine1 - officerNumber.Value + 0.5f) * box.OfficerWidth);
+                    
+                    zLocation = backOfFrontLine - (officerNumber.Value+1f) * box.OfficerSpacing - (officerNumber.Value + 0.5f) * box.OfficerWidth;
+                    xLocation = ((box.NumOfficersInLine2 - 1f)/2f) * (box.OfficerWidth + box.OfficerSpacing);
+                    formLocation = new float3(xLocation,0f,zLocation);
+                    formRot = quaternion.RotateY(math.radians(90));
+                    //formLocation = math.mul(formRot,formLocation);
+                }
+
+                commandBuffer.AddComponent<FormationLocation>(chunkIndex,entity, new FormationLocation{
+                    Value = formLocation
+                });
+                commandBuffer.AddComponent<FormationRotation>(chunkIndex,entity, new FormationRotation{
+                    Value = formRot
+                });
+                commandBuffer.AddComponent<PoliceOfficerOutOfFormation>(chunkIndex,entity, new PoliceOfficerOutOfFormation{});
+                commandBuffer.RemoveComponent<To3SidedBoxFormComponent>(chunkIndex,entity);
             }
         }
     }
-    // the job used when it is the center police line
-    private struct ToBoxCenterJob : IJobChunk {
-        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-        
-        [ReadOnly] public EntityTypeHandle entityType;
-        public ComponentTypeHandle<Translation> translationType;
-        public ComponentTypeHandle<Rotation> rotationType;
-        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
 
-        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
-            NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
-            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
-            NativeArray<Rotation> rotArray = chunk.GetNativeArray(rotationType);
-            NativeArray<To3SidedBoxFormComponent> toBoxArray = chunk.GetNativeArray(toBoxType);
-
-            for(int i = 0; i < chunk.Count; i++){  
-                Entity entity = entityArray[i]; 
-                Translation trans = transArray[i];
-                Rotation rot = rotArray[i];
-                To3SidedBoxFormComponent toBox = toBoxArray[i];
-
-                float3 destination = new float3((toBox.LineWidth-toBox.LineLength)/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
-                if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                    entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(chunkIndex, entity); // remove the formation change component from the police line
-                }
-                else{ // if not at the destination
-                    transArray[i] = new Translation {
-                        Value = destination // move to the destination
-                    };
-                    rotArray[i] = new Rotation {
-                        Value = quaternion.RotateY(math.radians(-90)) // rotate to the left
-                    };
-                }
-            }
-        }
-    }
-    // the job used when it is the front police line
-    private struct ToBoxRearJob : IJobChunk {
-        public EntityCommandBuffer.ParallelWriter entityCommandBuffer; //Entity command buffer to allow adding/removing components inside the job
-
-        [ReadOnly] public EntityTypeHandle entityType;
-        public ComponentTypeHandle<Translation> translationType;
-        public ComponentTypeHandle<Rotation> rotationType;
-        [ReadOnly] public ComponentTypeHandle<To3SidedBoxFormComponent> toBoxType;
-
-        public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
-            NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
-            NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
-            NativeArray<Rotation> rotArray = chunk.GetNativeArray(rotationType);
-            NativeArray<To3SidedBoxFormComponent> toBoxArray = chunk.GetNativeArray(toBoxType);
-
-            for(int i = 0; i < chunk.Count; i++){   
-                Entity entity = entityArray[i];
-                Translation trans = transArray[i];
-                Rotation rot = rotArray[i];
-                To3SidedBoxFormComponent toBox = toBoxArray[i];
-        
-                float3 destination = new float3((toBox.LineLength-toBox.LineWidth)/2,0f,0f); // the front line should move ahead of the center point of the unit by half the width of a police line
-                if(math.distance(trans.Value, destination) < tolerance){ // if the entity is within tolerance of the destination
-                    entityCommandBuffer.RemoveComponent<To3SidedBoxFormComponent>(chunkIndex, entity); // remove the formation change component from the police line
-                }
-                else{ // if not at the destination
-                    transArray[i] = new Translation {
-                        Value = destination // move to the destination
-                    };
-                    rotArray[i] = new Rotation {
-                        Value = quaternion.RotateY(math.radians(90)) // rotate to the right
-                    };
-                }
-            }
-        }
-    }
 
 
     protected override void OnCreate() {
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
 
-        toBoxFrontQueryDec = new EntityQueryDesc{
+        toBoxQueryDesc = new EntityQueryDesc{
             All = new ComponentType[]{
                 ComponentType.ReadOnly<To3SidedBoxFormComponent>(),
-                ComponentType.ReadOnly<FrontPoliceLineComponent>(),
-                typeof(Translation),
-                typeof(Rotation)
-            }
-        };
+                ComponentType.ReadOnly<PoliceOfficer>(),
+                ComponentType.ReadOnly<PoliceOfficerNumber>(),
+                ComponentType.ReadOnly<PoliceOfficerPoliceLineNumber>()
 
-        toBoxCenterQueryDec = new EntityQueryDesc{
-            All = new ComponentType[]{
-                ComponentType.ReadOnly<To3SidedBoxFormComponent>(),
-                ComponentType.ReadOnly<CenterPoliceLineComponent>(),
-                typeof(Translation),
-                typeof(Rotation)
-            }
-        };
-        
-
-        toBoxRearQueryDec = new EntityQueryDesc{
-            All = new ComponentType[]{
-                ComponentType.ReadOnly<To3SidedBoxFormComponent>(),
-                ComponentType.ReadOnly<RearPoliceLineComponent>(),
-                typeof(Translation),
-                typeof(Rotation)  
             }
         };
 
         base.OnCreate();
     }
     protected override void OnUpdate(){
-        EntityQuery frontQuery = GetEntityQuery(toBoxFrontQueryDec); // query the entities
-        EntityQuery centerQuery = GetEntityQuery(toBoxCenterQueryDec); // query the entities
-        EntityQuery rearQuery = GetEntityQuery(toBoxRearQueryDec); // query the entities
+        EntityQuery boxQuery = GetEntityQuery(toBoxQueryDesc); // query the entities
 
-        ToBoxFrontJob frontJob = new ToBoxFrontJob{ // creates the to 3 sided box front job
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
+        ToBoxJob pCordonJob = new ToBoxJob{ // creates the job
+            commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
             entityType =  GetEntityTypeHandle(),
-            translationType = GetComponentTypeHandle<Translation>(),
-            rotationType = GetComponentTypeHandle<Rotation>(),
-            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
+            boxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true),
+            officerNumType = GetComponentTypeHandle<PoliceOfficerNumber>(true),
+            lineNumType = GetComponentTypeHandle<PoliceOfficerPoliceLineNumber>(true)
         };
-        JobHandle frontJobHandle = frontJob.Schedule(frontQuery, this.Dependency);
-        ToBoxCenterJob centerJob = new ToBoxCenterJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
-            entityType =  GetEntityTypeHandle(),
-            translationType = GetComponentTypeHandle<Translation>(),
-            rotationType = GetComponentTypeHandle<Rotation>(),
-            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
-        };
-        JobHandle centerJobHandle = centerJob.Schedule(centerQuery, frontJobHandle);
-        ToBoxRearJob rearJob = new ToBoxRearJob{
-            entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
-            entityType =  GetEntityTypeHandle(),
-            translationType = GetComponentTypeHandle<Translation>(),
-            rotationType = GetComponentTypeHandle<Rotation>(),
-            toBoxType = GetComponentTypeHandle<To3SidedBoxFormComponent>(true)
-        };
-        JobHandle rearJobHandle = rearJob.Schedule(rearQuery, centerJobHandle);
+        JobHandle boxJobHandle = pCordonJob.Schedule(boxQuery, this.Dependency);        
 
-        commandBufferSystem.AddJobHandleForProducer(rearJobHandle); // tell the system to execute the command buffer after the job has been completed
+        commandBufferSystem.AddJobHandleForProducer(boxJobHandle); // tell the system to execute the command buffer after the job has been completed
 
-        this.Dependency = rearJobHandle;
+        this.Dependency = boxJobHandle;
     }
 }
+
+
+
