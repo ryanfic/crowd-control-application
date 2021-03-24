@@ -30,15 +30,18 @@ public class PoliceUnitVoiceController : MonoBehaviour
     private Dictionary<string, Action<string>> policeUnitNameActions = new Dictionary<string, Action<string>>();
 
     //Cordon Command Events
-    public event EventHandler OnToLooseCordonVoiceCommand;
+    public event EventHandler OnToParallelLooseCordonVoiceCommand;
+    public event EventHandler OnToSingleLooseCordonVoiceCommand;
     public event EventHandler<OnToFilterCordonEventArgs> OnToFilterCordonVoiceCommand; // 2nd Serial can step to left or right
-    public event EventHandler OnToTightCordonVoiceCommand;
+    public event EventHandler OnToParallelTightCordonVoiceCommand;
+    public event EventHandler OnToSingleTightCordonVoiceCommand;
     public event EventHandler OnToSingleBeltCordonVoiceCommand;
     public event EventHandler OnToDoubleBeltCordonVoiceCommand;
     public event EventHandler OnUnlinkCordonVoiceCommand;
 
 
     //Wedge Command Events
+    public event EventHandler OnToWedgeVoiceCommand;
     public event EventHandler OnToSingleBeltWedgeVoiceCommand;
     public event EventHandler OnToDoubleBeltWedgeVoiceCommand;
     public event EventHandler OnWedgeAdvanceVoiceCommand;
@@ -100,10 +103,12 @@ public class PoliceUnitVoiceController : MonoBehaviour
     }
 
     private void AddCordonCommands(){
-        actions.Add("Loose Cordon Form", ToLooseCordon);//to Loose Cordon
+        actions.Add("Parallel Loose Cordon Form", ToParallelLooseCordon);//to parallel Loose Cordon
+        actions.Add("Single Loose Cordon Form", ToSingleLooseCordon);//to single Loose Cordon
         actions.Add("Second Serial One Step To The Left Form", ToFilterCordonLeft);//to Filter Cordon Stepping left
         actions.Add("Second Serial One Step To The Right Form", ToFilterCordonRight);//to Filter Cordon Stepping right
-        actions.Add("Tight Cordon Form", ToTightCordon);//to Tight Cordon
+        actions.Add("Parallel Tight Cordon Form", ToParallelTightCordon);//to parallel Tight Cordon
+        actions.Add("Single Tight Cordon Form", ToSingleTightCordon);//to single Tight Cordon
         actions.Add("Single Belt Cordon Form", ToSingleBeltCordon);//to Single Belt Cordon
         actions.Add("Double Belt Cordon Form", ToDoubleBeltCordon);//to Double Belt Cordon
         actions.Add("Disengage", UnlinkCordon);//Unlink linked cordon
@@ -112,8 +117,9 @@ public class PoliceUnitVoiceController : MonoBehaviour
     
 
     private void AddWedgeCommands(){
-        actions.Add("Single Belt Wedge Form", ToSingleBeltWedge); //to Single Belt Wedge
-        actions.Add("Double Belt Wedge Form", ToDoubleBeltWedge); //to Double Belt Wedge
+        actions.Add("Wedge Form", ToWedge); //to  Wedge
+        //actions.Add("Single Belt Wedge Form", ToSingleBeltWedge); //to Single Belt Wedge
+        //actions.Add("Double Belt Wedge Form", ToDoubleBeltWedge); //to Double Belt Wedge
         actions.Add("Prepare to Advance Advance", WedgeAdvance);//To move forward
         //actions.Add("Halt", WedgeHalt);//Halt forward movement
         //Create a corridor -> "Front Officer...Disengage"
@@ -173,8 +179,11 @@ public class PoliceUnitVoiceController : MonoBehaviour
         Event Triggering Functions Called When Voice Command Observed
         Cordon Commands
     */
-    private void ToLooseCordon(){
-        OnToLooseCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
+    private void ToParallelLooseCordon(){
+        OnToParallelLooseCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
+    }
+    private void ToSingleLooseCordon(){
+        OnToSingleLooseCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
     }
 
     private void ToFilterCordonLeft(){
@@ -189,8 +198,11 @@ public class PoliceUnitVoiceController : MonoBehaviour
         });
     }
 
-    private void ToTightCordon(){
-        OnToTightCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
+    private void ToParallelTightCordon(){
+        OnToParallelTightCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
+    }
+    private void ToSingleTightCordon(){
+        OnToSingleTightCordonVoiceCommand?.Invoke(this, EventArgs.Empty);
     }
 
     private void ToSingleBeltCordon(){
@@ -209,6 +221,9 @@ public class PoliceUnitVoiceController : MonoBehaviour
         Event Triggering Functions Called When Voice Command Observed
         Wedge Commands
     */
+    private void ToWedge(){
+        OnToWedgeVoiceCommand?.Invoke(this, EventArgs.Empty);
+    }
     private void ToSingleBeltWedge(){
         OnToSingleBeltWedgeVoiceCommand?.Invoke(this, EventArgs.Empty);
     }

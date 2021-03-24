@@ -15,10 +15,17 @@ public class PoliceFormationChangeSystem : SystemBase {
     //private bool TwoDown;
 
     private bool ToParallelLooseCordon;
+    private bool ToParallelTightCordon;
+    private bool ToSingleLooseCordon;
+    private bool ToSingleTightCordon;
     private bool To3SidedBox;
+    private bool ToWedge;
 
     private static readonly float LooseCordonOfficerSpacing = 0.5f;
     private static readonly float threeSidedBoxOfficerSpacing = 0f;
+    private static readonly float wedgeAngle = 60f; // Angle of wedge, in degrees
+                                                    // Wedge angle should be between min (2*arctan(0.5 * officer width / officer length)) and max (2 * arctan(officer width / officer length))
+                                                    // for equal officer length and width, min = 53.13, max = 90
 
     //private float LineSpacing;
     //private float LineWidth;
@@ -27,7 +34,11 @@ public class PoliceFormationChangeSystem : SystemBase {
 
     protected override void OnCreate(){
         ToParallelLooseCordon = false;
+        ToParallelTightCordon = false;
+        ToSingleLooseCordon = false;
+        ToSingleTightCordon = false;
         To3SidedBox = false;
+        ToWedge = false;
         //LineSpacing = 2f;
         //LineWidth = 5f;
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -38,8 +49,12 @@ public class PoliceFormationChangeSystem : SystemBase {
         PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
         if(voiceControllers.Length > 0){
             PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
-            voiceController.OnToLooseCordonVoiceCommand += VoiceToParallelLooseCordonResponse;
+            voiceController.OnToParallelLooseCordonVoiceCommand += VoiceToParallelLooseCordonResponse;
+            voiceController.OnToParallelTightCordonVoiceCommand += VoiceToParallelTightCordonResponse;
+            voiceController.OnToSingleLooseCordonVoiceCommand += VoiceToSingleLooseCordonResponse;
+            voiceController.OnToSingleTightCordonVoiceCommand += VoiceToSingleTightCordonResponse;
             voiceController.OnTo3SidedBoxVoiceCommand += VoiceTo3SidedBoxResponse;
+            voiceController.OnToWedgeVoiceCommand += VoiceToWedgeResponse;
         }
         //Debug.Log(Object.FindObjectsOfType<Camera>().Length);
     }
@@ -74,6 +89,87 @@ public class PoliceFormationChangeSystem : SystemBase {
 
             this.Dependency = cordonHandle;
         }
+        else if(ToParallelTightCordon){ 
+            //float spacing = LineSpacing;
+            //float width = LineWidth;
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
+            JobHandle cordonHandle = Entities
+                .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
+                .ForEach((Entity policeUnit, int entityInQueryIndex, ref DynamicBuffer<OfficerInFormation> inFormation, in PoliceUnitDimensions dimensions, in DynamicBuffer<OfficerInPoliceUnit> officers)=>{
+                        for(int i = 0; i < officers.Length; i++){
+                            //Debug.Log("Changing : " + i +"!");
+                            commandBuffer.AddComponent<ToParallelCordonFormComponent>(entityInQueryIndex, officers[i].officer, new ToParallelCordonFormComponent{ 
+                                LineSpacing = dimensions.LineSpacing,
+                                OfficerLength = dimensions.OfficerLength,
+                                OfficerWidth = dimensions.OfficerWidth, 
+                                OfficerSpacing = 0f,
+                                NumOfficersInLine1 = dimensions.NumOfficersInLine1,
+                                NumOfficersInLine2 = dimensions.NumOfficersInLine2,
+                                NumOfficersInLine3 = dimensions.NumOfficersInLine3
+                            }); // Add component to change to cordon
+                        }
+                        inFormation.Clear();
+                        commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
+                }).Schedule(this.Dependency);
+            //OneDown = false;
+            ToParallelLooseCordon = false;
+
+            commandBufferSystem.AddJobHandleForProducer(cordonHandle);
+
+            this.Dependency = cordonHandle;
+        }
+        else if(ToSingleLooseCordon){ 
+            //float spacing = LineSpacing;
+            //float width = LineWidth;
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
+            JobHandle cordonHandle = Entities
+                .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
+                .ForEach((Entity policeUnit, int entityInQueryIndex,  ref DynamicBuffer<OfficerInFormation> inFormation, in PoliceUnitDimensions dimensions, in DynamicBuffer<OfficerInPoliceUnit> officers)=>{
+                        for(int i = 0; i < officers.Length; i++){
+                            //Debug.Log("Changing : " + i +"!");
+                            commandBuffer.AddComponent<ToSingleCordonFormComponent>(entityInQueryIndex, officers[i].officer, new ToSingleCordonFormComponent {
+                                OfficerWidth = dimensions.OfficerWidth, 
+                                OfficerSpacing = LooseCordonOfficerSpacing,
+                                NumOfficersInLine1 = dimensions.NumOfficersInLine1,
+                                NumOfficersInLine2 = dimensions.NumOfficersInLine2,
+                                NumOfficersInUnit = dimensions.NumOfficersInLine1 + dimensions.NumOfficersInLine2 + dimensions.NumOfficersInLine3
+                            }); // Add component to change to cordon
+                        }
+                        inFormation.Clear();
+                        commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
+                }).Schedule(this.Dependency);
+            ToSingleLooseCordon = false;
+
+            commandBufferSystem.AddJobHandleForProducer(cordonHandle);
+
+            this.Dependency = cordonHandle;
+        } 
+        else if(ToSingleTightCordon){ 
+            //float spacing = LineSpacing;
+            //float width = LineWidth;
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
+            JobHandle cordonHandle = Entities
+                .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
+                .ForEach((Entity policeUnit, int entityInQueryIndex,  ref DynamicBuffer<OfficerInFormation> inFormation, in PoliceUnitDimensions dimensions, in DynamicBuffer<OfficerInPoliceUnit> officers)=>{
+                        for(int i = 0; i < officers.Length; i++){
+                            //Debug.Log("Changing : " + i +"!");
+                            commandBuffer.AddComponent<ToSingleCordonFormComponent>(entityInQueryIndex, officers[i].officer, new ToSingleCordonFormComponent {
+                                OfficerWidth = dimensions.OfficerWidth, 
+                                OfficerSpacing = 0f,
+                                NumOfficersInLine1 = dimensions.NumOfficersInLine1,
+                                NumOfficersInLine2 = dimensions.NumOfficersInLine2,
+                                NumOfficersInUnit = dimensions.NumOfficersInLine1 + dimensions.NumOfficersInLine2 + dimensions.NumOfficersInLine3
+                            }); // Add component to change to cordon
+                        }
+                        inFormation.Clear();
+                        commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
+                }).Schedule(this.Dependency);
+            ToSingleTightCordon = false;
+
+            commandBufferSystem.AddJobHandleForProducer(cordonHandle);
+
+            this.Dependency = cordonHandle;
+        } 
         else if(To3SidedBox){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
@@ -101,6 +197,35 @@ public class PoliceFormationChangeSystem : SystemBase {
             commandBufferSystem.AddJobHandleForProducer(boxHandle);
 
             this.Dependency = boxHandle;
+        } 
+        else if(ToWedge){ 
+            EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
+            JobHandle wedgeHandle = Entities
+                .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
+                .ForEach((Entity policeUnit, int entityInQueryIndex,  ref DynamicBuffer<OfficerInFormation> inFormation, in PoliceUnitDimensions dimensions, in DynamicBuffer<OfficerInPoliceUnit> officers)=>{
+                        int totalOfficers = dimensions.NumOfficersInLine1 + dimensions.NumOfficersInLine2 + dimensions.NumOfficersInLine3;
+                        int remainder = totalOfficers % 2;
+                        int midOfficerNum = (totalOfficers + remainder)/2;
+                        for(int i = 0; i < officers.Length; i++){
+                            commandBuffer.AddComponent<ToWedgeFormComponent>(entityInQueryIndex, officers[i].officer, new ToWedgeFormComponent {
+                                Angle = wedgeAngle,
+                                OfficerLength = dimensions.OfficerLength,
+                                OfficerWidth = dimensions.OfficerWidth, 
+                                NumOfficersInLine1 = dimensions.NumOfficersInLine1,
+                                NumOfficersInLine2 = dimensions.NumOfficersInLine2,
+                                NumOfficersInLine3 = dimensions.NumOfficersInLine3,
+                                MiddleOfficerNum = midOfficerNum,
+                                TotalOfficers = totalOfficers
+                            }); // Add component to change to wedge
+                        }
+                        inFormation.Clear();
+                        commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
+                }).Schedule(this.Dependency);
+            ToWedge = false;
+
+            commandBufferSystem.AddJobHandleForProducer(wedgeHandle);
+
+            this.Dependency = wedgeHandle;
         }        
     }
 
@@ -120,8 +245,24 @@ public class PoliceFormationChangeSystem : SystemBase {
         ToParallelLooseCordon = true;
     }
 
+    private void VoiceToParallelTightCordonResponse(object sender, System.EventArgs eventArgs){
+        ToParallelTightCordon = true;
+    }
+
+    private void VoiceToSingleLooseCordonResponse(object sender, System.EventArgs eventArgs){
+        ToSingleLooseCordon = true;
+    }
+
+    private void VoiceToSingleTightCordonResponse(object sender, System.EventArgs eventArgs){
+        ToSingleTightCordon = true;
+    }
+
     private void VoiceTo3SidedBoxResponse(object sender, OnTo3SidedBoxEventArgs eventArgs){
         To3SidedBox = true;
+    }
+
+    private void VoiceToWedgeResponse(object sender, System.EventArgs eventArgs){
+        ToWedge = true;
     }
 
 }
