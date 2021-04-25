@@ -61,13 +61,60 @@ public class PoliceUnitMovementSystem : SystemBase
         JobHandle rotateJobHandle = Entities
             .WithAll<PoliceUnitComponent>()
             .WithNone<PoliceUnitGettingIntoFormation>()
-            .ForEach((Entity policeUnit, int entityInQueryIndex, ref Rotation rot, in PoliceUnitContinuousRotation continuousRot, in PoliceUnitRotationSpeed rotSpeed)=>{
-                float3 destination = new float3(-1,0,0);
-                if(!continuousRot.RotateLeft){ // if we aren't rotating to the left, rotate in the opposite direction (to the right)
-                    destination.x = -destination.x;
+            .ForEach((Entity policeUnit, int entityInQueryIndex, ref Rotation rot, ref PoliceUnitContinuousRotation continuousRot, in PoliceUnitRotationSpeed rotSpeed)=>{
+                //Check if we are waiting at an angle
+                if(continuousRot.WaitingAtAngle){
+                    //If so, add time
+                    continuousRot.WaitTime += deltaTime;
+                    if(continuousRot.WaitTime > 3){ // if finished waiting
+                        continuousRot.WaitingAtAngle = false; // say that done finished waiting
+                        continuousRot.WaitTime = 0; // reset timer
+                    }
                 }
-                destination = math.mul(rot.Value,destination); // make the location relative to the current rotation by multiplying the destination by the current rotation
-                rot.Value = RotateTowards(rot.Value, float3.zero, destination, (rotSpeed.Value * deltaTime)/3);
+                else{//if we are not waiting 
+                    float3 destination = new float3(-1,0,0);
+                    if(!continuousRot.RotateLeft){ // if we aren't rotating to the left, rotate in the opposite direction (to the right)
+                        destination.x = -destination.x;
+                    }
+                    destination = math.mul(rot.Value,destination); // make the location relative to the current rotation by multiplying the destination by the current rotation
+                    rot.Value = RotateTowards(rot.Value, float3.zero, destination, (rotSpeed.Value * deltaTime)/3); //rotate
+
+                    //check if we are near north,south,east or west
+                    quaternion north = quaternion.RotateY(0);
+                    quaternion east = quaternion.RotateY(math.PI/2);
+                    quaternion south = quaternion.RotateY(math.PI);
+                    quaternion west = quaternion.RotateY(3*math.PI/2);
+
+                    //Debug.Log("Angle Diff: " + math.degrees());
+                    if(continuousRot.LastWaitAngle != 1 // did not wait north last time
+                        && (math.degrees(AngleBetweenQuaternions(rot.Value,north)) < 2 
+                        || math.degrees(AngleBetweenQuaternions(rot.Value,north)) > 358)){
+                            //wait & update last wait direction
+                            continuousRot.WaitingAtAngle = true;
+                            continuousRot.LastWaitAngle = 1;
+                    }
+                    else if(continuousRot.LastWaitAngle != 2 // did not wait east last time
+                        && (math.degrees(AngleBetweenQuaternions(rot.Value,east)) < 2 
+                        || math.degrees(AngleBetweenQuaternions(rot.Value,east)) > 358)){
+                            //wait & update last wait direction
+                            continuousRot.WaitingAtAngle = true;
+                            continuousRot.LastWaitAngle = 2;
+                    }
+                    else if(continuousRot.LastWaitAngle != 3 // did not wait south last time
+                        && (math.degrees(AngleBetweenQuaternions(rot.Value,south)) < 2 
+                        || math.degrees(AngleBetweenQuaternions(rot.Value,south)) > 358)){
+                            //wait & update last wait direction
+                            continuousRot.WaitingAtAngle = true;
+                            continuousRot.LastWaitAngle = 3;
+                    }
+                    else if(continuousRot.LastWaitAngle != 4 // did not wait west last time
+                        && (math.degrees(AngleBetweenQuaternions(rot.Value,west)) < 2 
+                        || math.degrees(AngleBetweenQuaternions(rot.Value,west)) > 358)){
+                            //wait & update last wait direction
+                            continuousRot.WaitingAtAngle = true;
+                            continuousRot.LastWaitAngle = 4;
+                    }
+                }
             })
             .ScheduleParallel(forwardJobHandle);
 
@@ -92,7 +139,6 @@ public class PoliceUnitMovementSystem : SystemBase
         quaternion difference = math.mul(q1,math.inverse(q2)); // the angle between q1 and q2
         float angle = 2 * math.acos(difference.value[3]); // angle in rads
         return angle;
-
     }
 }
 

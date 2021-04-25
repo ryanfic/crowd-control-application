@@ -13,7 +13,7 @@ public class SuggestionTrialPoliceAuthoring : MonoBehaviour, IConvertGameObjectT
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
         DynamicBuffer<SuggestNearbyCrowd> tempBuff = dstManager.AddBuffer<SuggestNearbyCrowd>(entity);
         Entity holder = dstManager.CreateEntity();
-        dstManager.SetName(holder, "Suggestion Data Holder For " + dstManager.GetName(entity));
+        //dstManager.SetName(holder, "Suggestion Data Holder For " + dstManager.GetName(entity));
         DynamicBuffer<WayPoint> wp = dstManager.AddBuffer<WayPoint>(holder);
         foreach(float3 pos in wayPoints){
             wp.Add(new WayPoint{

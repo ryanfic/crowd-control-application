@@ -22,7 +22,7 @@ public class PoliceFormationChangeSystem : SystemBase {
     private bool ToWedge;
 
     private static readonly float LooseCordonOfficerSpacing = 0.5f;
-    private static readonly float threeSidedBoxOfficerSpacing = 0f;
+    private static readonly float threeSidedBoxOfficerSpacing = 0.4f;
     private static readonly float wedgeAngle = 60f; // Angle of wedge, in degrees
                                                     // Wedge angle should be between min (2*arctan(0.5 * officer width / officer length)) and max (2 * arctan(officer width / officer length))
                                                     // for equal officer length and width, min = 53.13, max = 90
@@ -45,9 +45,12 @@ public class PoliceFormationChangeSystem : SystemBase {
         World.GetOrCreateSystem<UIController>().On1Down += OneDownResponse;
         World.GetOrCreateSystem<UIController>().On2Down += TwoDownResponse;
 
+
+        Debug.Log("Let's see if this displays");
         //Obtain Voice Controller - There should only be one
-        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        /*PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
         if(voiceControllers.Length > 0){
+            Debug.Log("Found a voice controller");
             PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
             voiceController.OnToParallelLooseCordonVoiceCommand += VoiceToParallelLooseCordonResponse;
             voiceController.OnToParallelTightCordonVoiceCommand += VoiceToParallelTightCordonResponse;
@@ -55,7 +58,7 @@ public class PoliceFormationChangeSystem : SystemBase {
             voiceController.OnToSingleTightCordonVoiceCommand += VoiceToSingleTightCordonResponse;
             voiceController.OnTo3SidedBoxVoiceCommand += VoiceTo3SidedBoxResponse;
             voiceController.OnToWedgeVoiceCommand += VoiceToWedgeResponse;
-        }
+        }*/
         //Debug.Log(Object.FindObjectsOfType<Camera>().Length);
     }
 
@@ -112,7 +115,7 @@ public class PoliceFormationChangeSystem : SystemBase {
                         commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
                 }).Schedule(this.Dependency);
             //OneDown = false;
-            ToParallelLooseCordon = false;
+            ToParallelTightCordon = false;
 
             commandBufferSystem.AddJobHandleForProducer(cordonHandle);
 
@@ -264,6 +267,18 @@ public class PoliceFormationChangeSystem : SystemBase {
     private void VoiceToWedgeResponse(object sender, System.EventArgs eventArgs){
         ToWedge = true;
     }
-
+    public void ConnectToVoiceController(){
+        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        if(voiceControllers.Length > 0){
+            Debug.Log("Found a voice controller");
+            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
+            voiceController.OnToParallelLooseCordonVoiceCommand += VoiceToParallelLooseCordonResponse;
+            voiceController.OnToParallelTightCordonVoiceCommand += VoiceToParallelTightCordonResponse;
+            voiceController.OnToSingleLooseCordonVoiceCommand += VoiceToSingleLooseCordonResponse;
+            voiceController.OnToSingleTightCordonVoiceCommand += VoiceToSingleTightCordonResponse;
+            voiceController.OnTo3SidedBoxVoiceCommand += VoiceTo3SidedBoxResponse;
+            voiceController.OnToWedgeVoiceCommand += VoiceToWedgeResponse;
+        }
+    }
 }
 

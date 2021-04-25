@@ -83,6 +83,14 @@ public class PoliceUnitVoiceController : MonoBehaviour
         //subscribe to police units deleted events
         PoliceUnitToDeleteSystem policeUnitDeleteSystem = World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceUnitToDeleteSystem>();
         policeUnitDeleteSystem.OnPoliceUnitDeletedWithName += PoliceUnitDeletedResponse;
+
+        World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceFormationChangeSystem>().ConnectToVoiceController();
+        World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceUnitContinuousMovementSystem>().ConnectToVoiceController();
+        World.DefaultGameObjectInjectionWorld.GetOrCreateSystem<PoliceUnitRemoveMovementSystem>().ConnectToVoiceController();
+    }
+
+    private void OnDestroy() {
+        keywordRecognizer?.Dispose();
     }
 
     private void SetUpKeywordRecognizer(){
@@ -103,34 +111,80 @@ public class PoliceUnitVoiceController : MonoBehaviour
     }
 
     private void AddCordonCommands(){
-        actions.Add("Parallel Loose Cordon Form", ToParallelLooseCordon);//to parallel Loose Cordon
-        actions.Add("Single Loose Cordon Form", ToSingleLooseCordon);//to single Loose Cordon
-        actions.Add("Second Serial One Step To The Left Form", ToFilterCordonLeft);//to Filter Cordon Stepping left
-        actions.Add("Second Serial One Step To The Right Form", ToFilterCordonRight);//to Filter Cordon Stepping right
-        actions.Add("Parallel Tight Cordon Form", ToParallelTightCordon);//to parallel Tight Cordon
-        actions.Add("Single Tight Cordon Form", ToSingleTightCordon);//to single Tight Cordon
-        actions.Add("Single Belt Cordon Form", ToSingleBeltCordon);//to Single Belt Cordon
-        actions.Add("Double Belt Cordon Form", ToDoubleBeltCordon);//to Double Belt Cordon
-        actions.Add("Disengage", UnlinkCordon);//Unlink linked cordon
+        if(!actions.ContainsKey("Parallel Loose Cordon Form")){
+            actions.Add("Parallel Loose Cordon Form", ToParallelLooseCordon);//to parallel Loose Cordon
+        }
+            
+        if(!actions.ContainsKey("Single Loose Cordon Form")){
+            actions.Add("Single Loose Cordon Form", ToSingleLooseCordon);//to single Loose Cordon
+        }
+            
+        if(!actions.ContainsKey("Second Serial One Step To The Left Form")){
+            actions.Add("Second Serial One Step To The Left Form", ToFilterCordonLeft);//to Filter Cordon Stepping left
+        }
+            
+        if(!actions.ContainsKey("Second Serial One Step To The Right Form")){
+            actions.Add("Second Serial One Step To The Right Form", ToFilterCordonRight);//to Filter Cordon Stepping right
+        }
+            
+        if(!actions.ContainsKey("Parallel Tight Cordon Form")){
+            actions.Add("Parallel Tight Cordon Form", ToParallelTightCordon);//to parallel Tight Cordon
+        }
+            
+        if(!actions.ContainsKey("Single Tight Cordon Form")){
+            actions.Add("Single Tight Cordon Form", ToSingleTightCordon);//to single Tight Cordon
+        }
+            
+        if(!actions.ContainsKey("Single Belt Cordon Form")){
+            actions.Add("Single Belt Cordon Form", ToSingleBeltCordon);//to Single Belt Cordon
+        }
+            
+        if(!actions.ContainsKey("Double Belt Cordon Form")){
+            actions.Add("Double Belt Cordon Form", ToDoubleBeltCordon);//to Double Belt Cordon
+        }
+            
+        if(!actions.ContainsKey("Disengage")){
+            actions.Add("Disengage", UnlinkCordon);//Unlink linked cordon
+        }
     }
 
     
 
     private void AddWedgeCommands(){
-        actions.Add("Wedge Form", ToWedge); //to  Wedge
+        
+        if(!actions.ContainsKey("Wedge Form")){
+            actions.Add("Wedge Form", ToWedge); //to  Wedge
+        }
         //actions.Add("Single Belt Wedge Form", ToSingleBeltWedge); //to Single Belt Wedge
         //actions.Add("Double Belt Wedge Form", ToDoubleBeltWedge); //to Double Belt Wedge
-        actions.Add("Prepare to Advance Advance", WedgeAdvance);//To move forward
+        
+        if(!actions.ContainsKey("Prepare to Advance Advance")){
+            actions.Add("Prepare to Advance Advance", WedgeAdvance);//To move forward
+        }
         //actions.Add("Halt", WedgeHalt);//Halt forward movement
         //Create a corridor -> "Front Officer...Disengage"
     }
 
     private void Add3SidedBoxCommands(){
-        actions.Add("Rear Rank Stack Right Center Rank Stack Left Three Sided Box Form", To3SidedBoxRRCL);//to 3 Sided box -> rear right center left
-        actions.Add("Rear Rank Stack Left Center Rank Stack Right Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
-        actions.Add("Center Rank Stack Left Rear Rank Stack Right Three Sided Box Form", To3SidedBoxRRCL);//to 3 Sided box -> rear right center left
-        actions.Add("Center Rank Stack Right Rear Rank Stack Left Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
-        actions.Add("Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
+        if(!actions.ContainsKey("Rear Rank Stack Right Center Rank Stack Left Three Sided Box Form")){
+            actions.Add("Rear Rank Stack Right Center Rank Stack Left Three Sided Box Form", To3SidedBoxRRCL);//to 3 Sided box -> rear right center left
+        }
+        
+        if(!actions.ContainsKey("Rear Rank Stack Left Center Rank Stack Right Three Sided Box Form")){
+            actions.Add("Rear Rank Stack Left Center Rank Stack Right Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
+        }
+        
+        if(!actions.ContainsKey("Center Rank Stack Left Rear Rank Stack Right Three Sided Box Form")){
+            actions.Add("Center Rank Stack Left Rear Rank Stack Right Three Sided Box Form", To3SidedBoxRRCL);//to 3 Sided box -> rear right center left
+        }
+        
+        if(!actions.ContainsKey("Center Rank Stack Right Rear Rank Stack Left Three Sided Box Form")){
+            actions.Add("Center Rank Stack Right Rear Rank Stack Left Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
+        }
+        
+        if(!actions.ContainsKey("Three Sided Box Form")){
+            actions.Add("Three Sided Box Form", To3SidedBoxRLCR); // to 3 Sided Box -> Rear left center right
+        }
         //Front line standing fast at T junctionn when entering from bottom of T
         //Standing fast at T Junction When moving across top of T
     }
@@ -138,26 +192,41 @@ public class PoliceUnitVoiceController : MonoBehaviour
     private void AddMovementCommands(){
         //Move to...
         //Intersection
-        actions.Add(/*"The objective is to take the intersection. Do you understand? Advance"*/"The Objective Is To Take The Intersection Advance", MoveToIntersection); // move to the intersection
+        if(!actions.ContainsKey("The Objective Is To Take The Intersection Advance")){
+            actions.Add(/*"The objective is to take the intersection. Do you understand? Advance"*/"The Objective Is To Take The Intersection Advance", MoveToIntersection); // move to the intersection
+        }
         //Stop sign
 
         //Wheeling
 
         //Move forward
-        actions.Add("Section Advance", MoveForward);
+        //if(!actions.ContainsKey("Advance")){
+            actions.Add(/*"Section Advance"*/"Advance", MoveForward);
+            //actions.Add(/*"Section Advance"*/"Go", MoveForward);
+        //}
         //Halt
-        actions.Add("Halt", Halt);
+        //if(!actions.ContainsKey("Halt")){
+            actions.Add("Halt", Halt);
+        //}
         //Rotate
-        actions.Add("Rotate Left", RotateLeft);
-        actions.Add("Rotate Right", RotateRight);
+        //if(!actions.ContainsKey("Rotate Left")){
+            actions.Add("Rotate Left", RotateLeft);
+        //}
+        
+        //if(!actions.ContainsKey("Rotate Right")){
+            actions.Add("Rotate Right", RotateRight);
+        //}
     }
 
     private void AddSelectionCommands(){
         //Select all police units
-        actions.Add("All Units", SelectAllPoliceUnits);
+        
+        if(!actions.ContainsKey("All Units")){
+            actions.Add("All Units", SelectAllPoliceUnits);
+        }
 
         //Deselect all police units
-        actions.Add("Deselect Units", DeselectAllPoliceUnits);
+        //actions.Add("Deselect Units", DeselectAllPoliceUnits);
     }
 
     private void RecognizedSpeech(PhraseRecognizedEventArgs speech){

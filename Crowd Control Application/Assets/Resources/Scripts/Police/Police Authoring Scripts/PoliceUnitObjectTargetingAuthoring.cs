@@ -65,7 +65,7 @@ public class PoliceUnitObjectTargetingAuthoring : MonoBehaviour, IConvertGameObj
             Entity holderEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(LineHolder,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
 
-            dstManager.SetName(entity,"Police Unit " + UnitName);
+            //dstManager.SetName(entity,"Police Unit " + UnitName);
 
             //Set up the front line
             Entity line1 = CreatePoliceLine(policeLine, policeOfficer, holderEntity, entity, dstManager, PoliceLine.Front, 1);
@@ -104,7 +104,7 @@ public class PoliceUnitObjectTargetingAuthoring : MonoBehaviour, IConvertGameObj
     //Also creates police officers for the police line
     private Entity CreatePoliceLine(Entity linePrefab, Entity officerPrefab, Entity holderPrefab, Entity policeUnit, EntityManager dstManager, PoliceLine lineType,int lineNumber){
         Entity policeLine = dstManager.Instantiate(holderPrefab);
-        dstManager.SetName(policeLine,"Police Line " + lineNumber);
+        //dstManager.SetName(policeLine,"Police Line " + lineNumber);
         dstManager.AddComponentData<Parent>(policeLine, new Parent{Value = policeUnit});
         dstManager.AddComponentData<LocalToParent>(policeLine, new LocalToParent());
         
@@ -124,7 +124,7 @@ public class PoliceUnitObjectTargetingAuthoring : MonoBehaviour, IConvertGameObj
         }
         // Set up a blocker that acts as the physical body that the police line collides with other objects with
         Entity blocker = dstManager.Instantiate(linePrefab);
-        dstManager.SetName(blocker,"Police Line " + lineNumber + " Blocker");
+        //dstManager.SetName(blocker,"Police Line " + lineNumber + " Blocker");
         dstManager.AddComponentData<Parent>(blocker, new Parent{Value = policeLine});
         dstManager.AddComponentData<LocalToParent>(blocker, new LocalToParent());
         dstManager.AddComponentData<Translation>(blocker, new Translation{Value = new float3(0f,0f,0f)});
@@ -144,7 +144,7 @@ public class PoliceUnitObjectTargetingAuthoring : MonoBehaviour, IConvertGameObj
     // It is assumed that the width of a single police officer is the same as the length (or depth)
     private void CreatePoliceOfficer(Entity officerPrefab, Entity policeLine, EntityManager dstManager, int officerNum){
         Entity policeOfficer = dstManager.Instantiate(officerPrefab);
-        dstManager.SetName(policeOfficer,"Police Officer " + (officerNum+1));
+        //dstManager.SetName(policeOfficer,"Police Officer " + (officerNum+1));
         dstManager.AddComponentData<Parent>(policeOfficer, new Parent{Value = policeLine});
         dstManager.AddComponentData<LocalToParent>(policeOfficer, new LocalToParent());
         float offset;

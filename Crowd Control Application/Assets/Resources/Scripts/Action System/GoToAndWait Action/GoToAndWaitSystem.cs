@@ -49,10 +49,10 @@ public class GoToAndWaitSystem : SystemBase
                                 position = data.position
                             };
 
-                            Debug.Log("timeWaited (After adding) = " + data.timeWaited);
+                            //Debug.Log("timeWaited (After adding) = " + data.timeWaited);
 
                             if(data.timeToWait <= gTAWArray[i].timeWaited){ // if the agent has waited the correct amount of time
-                                Debug.Log("Done waiting");
+                                //Debug.Log("Done waiting");
                                 entityCommandBuffer.AddComponent<RemoveAction>(chunkIndex, entity, new RemoveAction { // add a component that tells the system to remove the action from the queue
                                     id = data.id
                                 }); 

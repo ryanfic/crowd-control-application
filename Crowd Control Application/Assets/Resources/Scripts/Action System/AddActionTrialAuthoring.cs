@@ -17,7 +17,7 @@ public class AddActionTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         //Create a separate entity to hold the waypoint buffer
 
         Entity holder = dstManager.CreateEntity();
-        dstManager.SetName(holder, "Waypoint Holder 1");
+        //dstManager.SetName(holder, "Waypoint Holder 1");
         DynamicBuffer<WayPoint> tempBuff = dstManager.AddBuffer<WayPoint>(holder);
         foreach(float3 location in positions1){ //Add the waypoints
             tempBuff.Add(new WayPoint{value = location});
@@ -28,7 +28,7 @@ public class AddActionTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             });// add the FollowWayPointsAction to the crowd agent
 
         Entity holder2 = dstManager.CreateEntity();
-        dstManager.SetName(holder2, "Waypoint Holder 2");
+        //dstManager.SetName(holder2, "Waypoint Holder 2");
         DynamicBuffer<WayPoint> tempBuff2 = dstManager.AddBuffer<WayPoint>(holder2);
         tempBuff2.Add(new WayPoint{value = new float3(3,0,0)});
         dstManager.AddComponentData<FollowWayPointsStorage>(holder2, new FollowWayPointsStorage {

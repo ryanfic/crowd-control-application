@@ -17,7 +17,7 @@ public class SimulationWaitCrowdAuthoring : MonoBehaviour, IConvertGameObjectToE
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
         Entity homeHolder = dstManager.CreateEntity();
-        dstManager.SetName(homeHolder, "Go Home Holder");
+        //dstManager.SetName(homeHolder, "Go Home Holder");
         dstManager.AddBuffer<Action>(entity);
         dstManager.AddComponentData<CurrentAction>(entity, new CurrentAction{
             id = -1,
@@ -39,7 +39,7 @@ public class SimulationWaitCrowdAuthoring : MonoBehaviour, IConvertGameObjectToE
             dataHolder = homeHolder
         }); 
         Entity waitHolder = dstManager.CreateEntity();
-        dstManager.SetName(waitHolder, "Go To And Wait Holder");
+        //dstManager.SetName(waitHolder, "Go To And Wait Holder");
         dstManager.AddComponentData<GoToAndWaitStorage>(waitHolder, new GoToAndWaitStorage { // add the go to and wait storage component to the holder
             id =  goToAndWaitActionID,
             timeToWait = timeToWait,

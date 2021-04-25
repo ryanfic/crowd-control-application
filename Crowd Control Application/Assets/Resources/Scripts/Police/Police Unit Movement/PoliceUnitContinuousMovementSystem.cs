@@ -49,7 +49,10 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
                 
                 Entity entity = entityArray[i];
                 commandBuffer.AddComponent<PoliceUnitContinuousRotation>(chunkIndex,entity,new PoliceUnitContinuousRotation{
-                    RotateLeft = leftTurn[0]
+                    RotateLeft = leftTurn[0],
+                    WaitingAtAngle = false,
+                    WaitTime = 0,
+                    LastWaitAngle = -1
                 }); //Add location target to entity so it starts moving towards the intersection
             }
         }
@@ -65,13 +68,7 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
             }
         };
 
-        //Obtain Voice Controller - There should only be one
-        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
-        if(voiceControllers.Length > 0){
-            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
-            voiceController.OnMoveForwardCommand += VoiceMoveForwardResponse;
-            voiceController.OnRotateCommand += VoiceRotateResponse;
-        }
+        
         
         base.OnCreate();
         this.Enabled = false;
@@ -107,4 +104,15 @@ public class PoliceUnitContinuousMovementSystem : SystemBase
         commandBufferSystem.AddJobHandleForProducer(rotateTagJobHandle); // make sure the components get added/removed for the job
         this.Dependency = rotateTagJobHandle;     
     }
+
+    public void ConnectToVoiceController(){
+        //Obtain Voice Controller - There should only be one
+        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        if(voiceControllers.Length > 0){
+            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
+            voiceController.OnMoveForwardCommand += VoiceMoveForwardResponse;
+            voiceController.OnRotateCommand += VoiceRotateResponse;
+        }
+    }
+    
 }

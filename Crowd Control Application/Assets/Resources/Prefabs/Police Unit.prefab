@@ -58,7 +58,7 @@ MonoBehaviour:
   OfficerSpacing: 0
   OfficersPerLine: 6
   UnitMaxSpeed: 2
-  UnitRotationSpeed: 2
+  UnitRotationSpeed: 1.5
   UnitName: 1
   OfficerMaxSpeed: 2
   OfficerRotationSpeed: 2

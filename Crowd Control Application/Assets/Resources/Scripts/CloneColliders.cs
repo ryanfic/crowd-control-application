@@ -92,7 +92,7 @@ public class CloneColliders : MonoBehaviour
 
         //Set the name of the entity
         string name = obj.name;
-        em.SetName(en,name);
+        //em.SetName(en,name);
         return en;
     }
 

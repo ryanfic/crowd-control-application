@@ -16,7 +16,7 @@ public class GoHomeTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
         Entity wpHolder = dstManager.CreateEntity();
-        dstManager.SetName(wpHolder, "Follow WP Holder");
+        //dstManager.SetName(wpHolder, "Follow WP Holder");
 
         dstManager.AddComponentData<FollowWayPointsStorage>(wpHolder, new FollowWayPointsStorage { // add the followwaypointsstorage component to the holder
             id =  followWPActionID,
@@ -45,7 +45,7 @@ public class GoHomeTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         });
 
         Entity homeHolder = dstManager.CreateEntity();
-        dstManager.SetName(homeHolder, "Go Home Holder");
+        //dstManager.SetName(homeHolder, "Go Home Holder");
 
         dstManager.AddComponentData<GoHomeStorage>(homeHolder, new GoHomeStorage { // add the go home storage component to the holder
             id =  goHomeActionID,

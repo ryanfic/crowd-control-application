@@ -12,7 +12,7 @@ public class SimulationCrowdAuthoring : MonoBehaviour, IConvertGameObjectToEntit
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
         Entity homeHolder = dstManager.CreateEntity();
-        dstManager.SetName(homeHolder, "Go Home Holder");
+        //dstManager.SetName(homeHolder, "Go Home Holder");
         dstManager.AddBuffer<Action>(entity);
         dstManager.AddComponentData<CurrentAction>(entity, new CurrentAction{
             id = -1,

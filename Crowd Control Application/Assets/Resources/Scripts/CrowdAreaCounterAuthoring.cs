@@ -33,6 +33,6 @@ public class CrowdAreaCounterAuthoring : MonoBehaviour, IConvertGameObjectToEnti
                 minZ = minZ,
                 maxZ = maxZ
             });
-            dstManager.SetName(entity,"Crowd Area Counter");
+            //dstManager.SetName(entity,"Crowd Area Counter");
     }
 }

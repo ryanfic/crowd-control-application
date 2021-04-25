@@ -6,11 +6,19 @@ using Unity.Jobs;
 using Unity.Burst;
 using Unity.Collections;
 using System.IO;
+using System;
 
 // A system for counting (and outputting) the crowd agents in the simulation
-public class CrowdCountingSystem : JobComponentSystem {
+public class CrowdCountingSystem : SystemBase {
 
-    private struct CountJob : IJobForEach<CrowdCounter> {
+    private bool onCrowdRepelStep;
+    //public event EventHandler NoCrowdLeftEvent;
+
+    protected override void OnCreate(){
+        //onCrowdRepelStep = false;
+    }
+
+    /*private struct CountJob : IJobForEach<CrowdCounter> {
         public float time;
         public int crowdNumber;
 
@@ -25,11 +33,22 @@ public class CrowdCountingSystem : JobComponentSystem {
                 sw.Close();
             }
         }
-    }
-    protected override JobHandle OnUpdate(JobHandle inputDeps){
-
-        EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<Crowd>());
-        NativeArray<Entity> array = query.ToEntityArray(Allocator.TempJob); // Get the arrays corresponding to the entities queried
+    }*/
+    protected override void OnUpdate(){
+        /*if(onCrowdRepelStep){
+            EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<Crowd>());
+            //Debug.Log("CrowdCount" + query.CalculateEntityCount());
+            if(query.CalculateEntityCount() == 0){
+                Debug.Log("No Crowd");
+                //if(onCrowdRepelStep){
+                    NoCrowdLeftEvent?.Invoke(this, EventArgs.Empty);
+                    Debug.Log("Invoked the event");
+                    onCrowdRepelStep = false;
+                //}
+            }
+        }
+        
+        /*NativeArray<Entity> array = query.ToEntityArray(Allocator.TempJob); // Get the arrays corresponding to the entities queried
         
         int crowdCount = array.Length;
 
@@ -41,6 +60,15 @@ public class CrowdCountingSystem : JobComponentSystem {
         };
         JobHandle jobHandle = countJob.Schedule(this, inputDeps);
 
-        return jobHandle;
+        return jobHandle;*/
+    }
+    /*public void setOnCrowdRepelStep(){
+        Debug.Log("Started Counting");
+        onCrowdRepelStep = true;
+    }*/
+    public int checkCrowdNumber(){
+        EntityQuery query = GetEntityQuery(ComponentType.ReadOnly<Crowd>());
+            //Debug.Log("CrowdCount" + query.CalculateEntityCount());
+        return query.CalculateEntityCount();
     }
 }

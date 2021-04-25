@@ -22,7 +22,7 @@ public class TrialActionAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         //Create a separate entity to hold the waypoint buffer
         for(int i = 0; i < 3; i++){
             holders[i] = dstManager.CreateEntity();
-            dstManager.SetName(holders[i], "Waypoint Holder " + i);
+            //dstManager.SetName(holders[i], "Waypoint Holder " + i);
             DynamicBuffer<WayPoint> tempBuff = dstManager.AddBuffer<WayPoint>(holders[i]);
             if(i == 0){ // if is the first entity, access the first position list
                 foreach(float3 location in positions1){ //Add the waypoints

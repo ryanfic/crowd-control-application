@@ -62,7 +62,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             Entity holderEntity = GameObjectConversionUtility.ConvertGameObjectHierarchy(LineHolder,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
 
-            dstManager.SetName(entity, UnitName);
+            //dstManager.SetName(entity, UnitName);
             dstManager.AddComponentData<PoliceUnitName>(entity, new PoliceUnitName{
                 String = UnitName
             });
@@ -73,6 +73,8 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             dstManager.AddBuffer<OfficerInPoliceUnit>(entity);
 
             dstManager.AddBuffer<OfficerInFormation>(entity);
+
+            dstManager.AddComponent<CopyTransformToGameObject>(entity);
 
             //Set up the front line
             Entity line1 = CreatePoliceLine(policeLine, policeOfficer, holderEntity, entity, dstManager, PoliceLine.Front, 0);
@@ -93,7 +95,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     //Also creates police officers for the police line
     private Entity CreatePoliceLine(Entity linePrefab, Entity officerPrefab, Entity holderPrefab, Entity policeUnit, EntityManager dstManager, PoliceLine lineType,int lineNumber){
         Entity policeLine = dstManager.Instantiate(holderPrefab);
-        dstManager.SetName(policeLine,"Police Line " + (lineNumber+1));
+        //dstManager.SetName(policeLine,"Police Line " + (lineNumber+1));
         dstManager.AddComponentData<Parent>(policeLine, new Parent{Value = policeUnit});
         dstManager.AddComponentData<LocalToParent>(policeLine, new LocalToParent());
         
@@ -135,7 +137,7 @@ public class PoliceUnitAuthoring : MonoBehaviour, IConvertGameObjectToEntity
     // It is assumed that the width of a single police officer is the same as the length (or depth)
     private void CreatePoliceOfficer(Entity officerPrefab, Entity policeLine, Entity policeUnit, EntityManager dstManager, int officerNum, int lineNumber){
         Entity policeOfficer = dstManager.Instantiate(officerPrefab);
-        dstManager.SetName(policeOfficer,"Police Officer " + (officerNum+1));
+        //dstManager.SetName(policeOfficer,"Police Officer " + (officerNum+1));
         dstManager.AddComponentData<Parent>(policeOfficer, new Parent{Value = policeLine});
         dstManager.AddComponentData<LocalToParent>(policeOfficer, new LocalToParent());
         float xLocation;

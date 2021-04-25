@@ -37,7 +37,7 @@ public class PoliceUnitGettingIntoFormationSystem : SystemBase
 
                 if(officersInFormation.Length >= officersInUnit.Length){ // if all (or more) of the officers in the police unit are in the appropriate formation
                     if(officersInFormation.Length > officersInUnit.Length){ // if there are more than the number of officers in the police unit that are in formation, some error occurred
-                        Debug.Log("Somehow " + officersInFormation.Length + " out of " + officersInUnit.Length + " are in formation. That's an error alright.");
+                        //Debug.Log("Somehow " + officersInFormation.Length + " out of " + officersInUnit.Length + " are in formation. That's an error alright.");
                     }
                     commandBuffer.RemoveComponent<PoliceUnitGettingIntoFormation>(chunkIndex,entity); //remove the 'Getting into formation' label from the police unit
                 }

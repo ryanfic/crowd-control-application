@@ -18,7 +18,7 @@ public class RemoveTrialAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         //Create a separate entity to hold the waypoint buffer
 
         Entity holder = dstManager.CreateEntity();
-        dstManager.SetName(holder, "Waypoint Holder 1");
+        //dstManager.SetName(holder, "Waypoint Holder 1");
         DynamicBuffer<WayPoint> tempBuff = dstManager.AddBuffer<WayPoint>(holder);
         foreach(float3 location in positions1){ //Add the waypoints
             tempBuff.Add(new WayPoint{value = location});

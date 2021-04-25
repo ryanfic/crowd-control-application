@@ -5,5 +5,9 @@
 public struct PoliceUnitContinuousRotation : IComponentData
 {
     public bool RotateLeft;
+    public bool WaitingAtAngle;
+    public float WaitTime;
+    public int LastWaitAngle;
+    
 }
 

@@ -95,15 +95,8 @@ public class PoliceUnitRemoveMovementSystem : SystemBase {
             }
         };
 
-        //Obtain Voice Controller - There should only be one
-        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
-        if(voiceControllers.Length > 0){
-            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
-            voiceController.OnMoveToIntersectionCommand += VoiceMovementCommandResponse;
-            voiceController.OnMoveForwardCommand += VoiceMoveForwardResponse;
-            voiceController.OnHaltCommand += VoiceMovementCommandResponse;
-            voiceController.OnRotateCommand += VoiceRotateResponse;
-        }
+        
+        
 
         removeNotFwd = false;
         removeNotRot = false;
@@ -171,4 +164,23 @@ public class PoliceUnitRemoveMovementSystem : SystemBase {
             this.Enabled = true; // do the removal
         }
     }    
+
+    public void ConnectToVoiceController(){
+        //Obtain Voice Controller - There should only be one
+        PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
+        if(voiceControllers.Length > 0){
+            PoliceUnitVoiceController voiceController = voiceControllers[0]; // grab the voice controller if there is one
+            voiceController.OnMoveToIntersectionCommand += VoiceMovementCommandResponse;
+            voiceController.OnMoveForwardCommand += VoiceMoveForwardResponse;
+            voiceController.OnHaltCommand += VoiceMovementCommandResponse;
+            voiceController.OnRotateCommand += VoiceRotateResponse;
+        }
+    }
+
+    public void ConnectToPrototypeManager(){
+        ScenarioTrigManager[] sceneManagers = Object.FindObjectsOfType<ScenarioTrigManager>();
+        if(sceneManagers.Length > 0){
+            sceneManagers[0].HaltPoliceEvent += VoiceMovementCommandResponse;
+        }
+    }
 }

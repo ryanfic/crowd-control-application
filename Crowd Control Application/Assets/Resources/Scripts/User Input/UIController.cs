@@ -53,7 +53,7 @@ public class UIController : SystemBase {
 
         float rayDistance = 100f;
         
-        if(leftMousePressed){ // if the left mouse has been pressed, deal with that first
+        /*if(leftMousePressed){ // if the left mouse has been pressed, deal with that first
             if(leftMouseUp){ // if the left mouse has been released
                 UnityEngine.Ray ray = mainCam.ScreenPointToRay(Input.mousePosition);
                 Unity.Physics.RaycastHit hit = new Unity.Physics.RaycastHit();
@@ -105,7 +105,7 @@ public class UIController : SystemBase {
             else if(btn2Down){
                 On2Down?.Invoke(this, EventArgs.Empty);
             }
-        }
+        }*/
 
     }
 

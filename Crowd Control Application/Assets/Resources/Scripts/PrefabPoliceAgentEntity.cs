@@ -12,7 +12,7 @@ public class PrefabPoliceAgentEntity : MonoBehaviour, IConvertGameObjectToEntity
             Entity prefabPoliceAgent = GameObjectConversionUtility.ConvertGameObjectHierarchy(prefabGameObject,
                 GameObjectConversionSettings.FromWorld(dstManager.World, blobAssetStore));
             
-            dstManager.SetName(prefabPoliceAgent,"Police Agent Prefab");
+            //dstManager.SetName(prefabPoliceAgent,"Police Agent Prefab");
             
             PrefabPoliceAgentEntity.prefabEntity = prefabPoliceAgent;
         }

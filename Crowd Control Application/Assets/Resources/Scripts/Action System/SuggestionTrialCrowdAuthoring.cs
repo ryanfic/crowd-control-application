@@ -12,7 +12,7 @@ public class SuggestionTrialCrowdAuthoring : MonoBehaviour, IConvertGameObjectTo
 
     public void Convert(Entity entity, EntityManager dstManager, GameObjectConversionSystem conversionSystem){
         Entity holder = dstManager.CreateEntity();
-        dstManager.SetName(holder, "Follow WP Holder");
+        //dstManager.SetName(holder, "Follow WP Holder");
 
         dstManager.AddComponentData<FollowWayPointsStorage>(holder, new FollowWayPointsStorage { // add the followwaypointsstorage component to the holder
             id =  actionID,

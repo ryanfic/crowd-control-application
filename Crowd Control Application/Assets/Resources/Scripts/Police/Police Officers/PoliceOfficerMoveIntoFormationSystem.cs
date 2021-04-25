@@ -69,7 +69,7 @@ public class PoliceOfficerMoveIntoFormationSystem : SystemBase {
                 else{ // the officer is now in the correct position
                     //find how much the officer should rotate per tick
                     float angle = AngleBetweenQuaternions(rot.Value,formRot.Value);
-                    Debug.Log("Angle: " + math.degrees(angle));
+                    //Debug.Log("Angle: " + math.degrees(angle));
 
                     float percent;
                     if(angle == 0 || angle != angle){
@@ -80,11 +80,11 @@ public class PoliceOfficerMoveIntoFormationSystem : SystemBase {
                     }
                     float numberOfTicks = math.ceil(1/percent);
                     percent = 1/numberOfTicks;
-                    Debug.Log("Percent: " + percent);
+                    //Debug.Log("Percent: " + percent);
                     if(percent > 1f){
                         percent = 1f;
                     }
-                    Debug.Log("Number of ticks: " + (numberOfTicks));
+                    //Debug.Log("Number of ticks: " + (numberOfTicks));
                     quaternion rotPerTick = math.slerp(rot.Value, formRot.Value, percent);
                     quaternion inverse = math.inverse(rot.Value); // find out how much to rotate by to get back to forward from the current rotation
                     rotPerTick = math.mul(rotPerTick, inverse);  // get the relative rotation per tick
@@ -133,7 +133,7 @@ public class PoliceOfficerMoveIntoFormationSystem : SystemBase {
                 if(math.distance(transl.Value,formLoc.Value) > moveTolerance){ // if the officer was knocked away from their formation location
                     commandBuffer.RemoveComponent<PoliceOfficerAtFormationLocation>(chunkIndex,entity); //signify that the officer should move back into position
                 }
-                else if(finalAngleDiff > rotTolerance){ // rotate towards the correct rotation (Step 2)
+                else if(finalAngleDiff > rotTolerance && finalAngleDiff < 360 - rotTolerance){ // rotate towards the correct rotation (Step 2)
                     quaternion newRot = math.mul(rot.Value, officerRotPerTick.RotationPerTick);//math.mul(math.mul(officerRotPerTick.RotationPerTick,rot.Value),math.inverse(officerRotPerTick.RotationPerTick));
                     rotArray[i] = new Rotation{Value = newRot};
                 }
