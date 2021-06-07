@@ -23,6 +23,9 @@ public class PoliceCrowdCollisionSystem : JobComponentSystem
 
     protected override void OnCreate(){
         base.OnCreate();
+
+        this.Enabled = false;
+
         m_BuildPhysicsWorldSystem = World.GetOrCreateSystem<BuildPhysicsWorld>();
         m_StepPhysicsWorldSystem = World.GetOrCreateSystem<StepPhysicsWorld>();
         commandBufferSystem = World.GetOrCreateSystem<EndSimulationEntityCommandBufferSystem>();
@@ -40,8 +43,8 @@ public class PoliceCrowdCollisionSystem : JobComponentSystem
 
         public EntityCommandBuffer commandBuffer;
         public void Execute(CollisionEvent collisionEvent){
-            Entity entityA = collisionEvent.Entities.EntityA;
-            Entity entityB = collisionEvent.Entities.EntityB;
+            Entity entityA = collisionEvent.EntityA;
+            Entity entityB = collisionEvent.EntityB;
 
             bool isBodyACrowd = crowdGroup.HasComponent(entityA);
             bool isBodyBCrowd = crowdGroup.HasComponent(entityB);

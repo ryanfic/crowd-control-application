@@ -102,6 +102,7 @@ public class PoliceUnitRemoveMovementSystem : SystemBase {
         removeNotRot = false;
         
         base.OnCreate();
+        this.Enabled = false;
     }
 
     protected override void OnUpdate(){

@@ -42,7 +42,7 @@ public class ChangeActionSystem : SystemBase {
                                 dataHolder = holder
                             });
                             current.type = ActionType.Follow_WayPoints;
-                            Debug.Log("Changing to Action " + actions[0].id + "!");
+                            //Debug.Log("Changing to Action " + actions[0].id + "!");
                             break;
                         case ActionType.Go_Home:
                             entityCommandBuffer.AddComponent<FetchGoHomeData>(chunkIndex, entity, new FetchGoHomeData{ // tell the system to fetch the go home data for the action
@@ -50,7 +50,7 @@ public class ChangeActionSystem : SystemBase {
                                 dataHolder = holder
                             });
                             current.type = ActionType.Go_Home;
-                            Debug.Log("Changing to Action " + actions[0].id + "!");
+                            //Debug.Log("Changing to Action " + actions[0].id + "!");
                             break;
                         case ActionType.Go_And_Wait:
                             entityCommandBuffer.AddComponent<FetchGoToAndWaitData>(chunkIndex, entity, new FetchGoToAndWaitData{ // tell the system to fetch the go home data for the action
@@ -58,7 +58,7 @@ public class ChangeActionSystem : SystemBase {
                                 dataHolder = holder
                             });
                             current.type = ActionType.Go_And_Wait;
-                            Debug.Log("Changing to Action " + actions[0].id + "!");
+                            //Debug.Log("Changing to Action " + actions[0].id + "!");
                             break;
                     }
                 }

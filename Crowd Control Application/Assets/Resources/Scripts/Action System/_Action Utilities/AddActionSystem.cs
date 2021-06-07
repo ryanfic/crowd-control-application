@@ -125,12 +125,12 @@ public class AddActionSystem : SystemBase {
         }
         private void AddAction(int chunkIndex, Entity entity, DynamicBuffer<Action> actions, int posToAdd, CurrentAction current, Action toAdd){
             if(posToAdd == 0){ // if the action was added at the start of the buffer
-                Debug.Log("Added to start!");
+                //Debug.Log("Added to start!");
                 if(current.type == ActionType.No_Action)
                     entityCommandBuffer.AddComponent<ChangeAction>(chunkIndex,entity, new ChangeAction{}); // tell the system that the current action should be changed
             }
             else{ //
-                Debug.Log("Added after start");
+                //Debug.Log("Added after start");
             }
             // Add the action at the correct position
             actions.Insert(posToAdd, toAdd);

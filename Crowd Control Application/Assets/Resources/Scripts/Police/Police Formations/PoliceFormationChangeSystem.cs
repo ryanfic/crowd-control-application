@@ -22,7 +22,7 @@ public class PoliceFormationChangeSystem : SystemBase {
     private bool ToWedge;
 
     private static readonly float LooseCordonOfficerSpacing = 0.5f;
-    private static readonly float threeSidedBoxOfficerSpacing = 0.4f;
+    private static readonly float threeSidedBoxOfficerSpacing = 0f;//0.4f;
     private static readonly float wedgeAngle = 60f; // Angle of wedge, in degrees
                                                     // Wedge angle should be between min (2*arctan(0.5 * officer width / officer length)) and max (2 * arctan(officer width / officer length))
                                                     // for equal officer length and width, min = 53.13, max = 90
@@ -176,6 +176,7 @@ public class PoliceFormationChangeSystem : SystemBase {
         else if(To3SidedBox){ 
             //float spacing = LineSpacing;
             //float width = LineWidth;
+            Debug.Log("Called inside onupdate");
             EntityCommandBuffer.ParallelWriter commandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(); // create a command buffer
             JobHandle boxHandle = Entities
                 .WithAll<PoliceUnitComponent,SelectedPoliceUnit>() // if police units are selected
@@ -190,7 +191,7 @@ public class PoliceFormationChangeSystem : SystemBase {
                                 NumOfficersInLine1 = dimensions.NumOfficersInLine1,
                                 NumOfficersInLine2 = dimensions.NumOfficersInLine2,
                                 NumOfficersInLine3 = dimensions.NumOfficersInLine3
-                            }); // Add component to change to cordon
+                            }); // Add component to change to Three sided box
                         }
                         inFormation.Clear();
                         commandBuffer.AddComponent<PoliceUnitGettingIntoFormation>(entityInQueryIndex, policeUnit, new PoliceUnitGettingIntoFormation{});
@@ -262,6 +263,7 @@ public class PoliceFormationChangeSystem : SystemBase {
 
     private void VoiceTo3SidedBoxResponse(object sender, OnTo3SidedBoxEventArgs eventArgs){
         To3SidedBox = true;
+        Debug.Log("Called inside response");
     }
 
     private void VoiceToWedgeResponse(object sender, System.EventArgs eventArgs){
@@ -278,6 +280,17 @@ public class PoliceFormationChangeSystem : SystemBase {
             voiceController.OnToSingleTightCordonVoiceCommand += VoiceToSingleTightCordonResponse;
             voiceController.OnTo3SidedBoxVoiceCommand += VoiceTo3SidedBoxResponse;
             voiceController.OnToWedgeVoiceCommand += VoiceToWedgeResponse;
+        }
+    }
+
+    public void ConnectToFormationHandler(){
+        EISICFormationHandler[] handlers = Object.FindObjectsOfType<EISICFormationHandler>();
+        if(handlers.Length > 0){
+            Debug.Log("Found a Formation handler");
+            EISICFormationHandler handler = handlers[0]; // grab the formation handler if there is one
+            handler.OnToParallelTightCordonCommand += VoiceToParallelTightCordonResponse;
+            handler.OnTo3SidedBoxCommand += VoiceTo3SidedBoxResponse;
+            handler.OnToWedgeCommand += VoiceToWedgeResponse;
         }
     }
 }
