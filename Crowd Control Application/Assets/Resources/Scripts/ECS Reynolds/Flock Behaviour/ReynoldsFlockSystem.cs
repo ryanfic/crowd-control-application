@@ -14,6 +14,7 @@ public struct CrowdData{
     public ReynoldsFlockBehaviour flockBehaviour;
 }
 
+//[UpdateAfter(typeof(MovingQuadrantSystem))]
 public class ReynoldsFlockSystem : SystemBase
 {
     private EntityQueryDesc flockQueryDec;

@@ -52,6 +52,8 @@ using Unity.Burst;
 /*
     Uses Jobs to find closest target (for multithreading purposes)
 */
+
+/*
 public class FindTargetJobSystem : JobComponentSystem{
 
     private struct EntityWithPosition{
@@ -103,13 +105,14 @@ public class FindTargetJobSystem : JobComponentSystem{
                 entityCommandBuffer.AddComponent(index, entity, new HasTarget{targetEntity = closestTargetEntity});
             }
         }
-    }
+    }*/
 
     /*
         Separated the Find Target Job into two parts in order to allow for BurstCompile to work
         This Job finds all closest targets for each seeker
         This job uses burstcompile
     */
+    /*
     [RequireComponentTag(typeof(Seeker))] // The Job will only run on entities that are seekers
     [ExcludeComponent(typeof(HasTarget))] // The Job will NOT run on entities that have a target
     [BurstCompile]
@@ -152,13 +155,14 @@ public class FindTargetJobSystem : JobComponentSystem{
             closestTargetEntityArray[index] = closestTargetEntity;
 
         }
-    }
+    }*/
 
     /*
         Separated the Find Target Job into two parts in order to allow for BurstCompile to work
         This Job assigns all closest targets to each seeker
         This job does not use burstcompile
     */
+    /*
     [RequireComponentTag(typeof(Seeker))] // The Job will only run on entities that are seekers
     [ExcludeComponent(typeof(HasTarget))] // The Job will NOT run on entities that have a target
     private struct AddComponentJob : IJobForEachWithEntity<Translation>{
@@ -173,9 +177,9 @@ public class FindTargetJobSystem : JobComponentSystem{
 
     [RequireComponentTag(typeof(Seeker))] // The Job will only run on entities that are seekers
     [ExcludeComponent(typeof(HasTarget))] // The Job will NOT run on entities that have a target
-    [BurstCompile]
+    [BurstCompile]*/
     /*Find Targets using the Quadrant system (instead of iterating through all targets)*/
-    private struct FindTargetQuadrantSystemJob : IJobForEachWithEntity<Translation> {
+    /*private struct FindTargetQuadrantSystemJob : IJobForEachWithEntity<Translation> {
         [ReadOnly] public NativeMultiHashMap<int, MovingQuadrantData> quadrantMultiHashMap; // uses information from the quadrant hash map to find nearby targets
 
         public NativeArray<Entity> closestTargetEntityArray; // in order to add the closest target (in the other job), need an array of closest targets
@@ -183,7 +187,7 @@ public class FindTargetJobSystem : JobComponentSystem{
 
         // Jobs need an Execute function
         //ReadOnly on the Translation because the translation is not being altered
-        public void Execute(Entity entity, int index, [ReadOnly] ref Translation trans/*, [ReadOnly] ref QuadrantEntity quadrantEntity*/){
+        public void Execute(Entity entity, int index, [ReadOnly] ref Translation trans){
             float3 seekerPosition = trans.Value; // the position of the seeker
 
             Entity closestTargetEntity = Entity.Null; //Since entity is a struct, it cannot simply be null, it must be Entity.Null
@@ -241,39 +245,11 @@ public class FindTargetJobSystem : JobComponentSystem{
     }
 
     protected override JobHandle OnUpdate(JobHandle inputDeps){
-        /*EntityQuery targetQuery = GetEntityQuery(typeof(Target),ComponentType.ReadOnly<Translation>()); // To get the amount of entities we need to store in the target array
-                                                    // Targets need to have Target label, but they also need Translation
-                                                    // Won't be altering the Translation of the target, so have it be Read only!
-        NativeArray<Entity> targetEntityArray = targetQuery.ToEntityArray(Allocator.TempJob); //Create an array of all the target entities
-        NativeArray<Translation> targetTranslationArray = targetQuery.ToComponentDataArray<Translation>(Allocator.TempJob); // Create an array of all the target's translations
-
-        NativeArray<EntityWithPosition> tarArray = new NativeArray<EntityWithPosition>(targetEntityArray.Length, Allocator.TempJob);
         
-        for(int i = 0; i < targetEntityArray.Length; i++){ // cycle through and create the target array
-            tarArray[i] = new EntityWithPosition{ // fill the position with the appropriate information from the parallel arrays
-                entity = targetEntityArray[i],
-                position = targetTranslationArray[i].Value,
-            };
-        }
-        
-        // Dispose of the parallel arrays, they've served their purpose
-        targetEntityArray.Dispose();
-        targetTranslationArray.Dispose();*/
 
         EntityQuery seekerQuery = GetEntityQuery(typeof(Seeker),ComponentType.Exclude<HasTarget>()); // Need number of seekers to make closest target array, so query all seekers that do not have targets
         NativeArray<Entity> closestTargetEntityArray = new NativeArray<Entity>(seekerQuery.CalculateEntityCount(), Allocator.TempJob); // Filled in the burst job, then used in the other job to assign closest targets
-        /*
-        FindTargetJob findTargetJob = new FindTargetJob{ // Create the job
-            targetArray = tarArray,
-            entityCommandBuffer = endSimulationEntityCommandBufferSystem.CreateCommandBuffer().ToConcurrent(), // Create a command buffer for the job
-        };
-        */
-        /*FindTargetBurstJob findTargetBurstJob = new FindTargetBurstJob{
-            targetArray = tarArray,
-            closestTargetEntityArray = closestTargetEntityArray
-        };
 
-        JobHandle jobHandle = findTargetBurstJob.Schedule(this, inputDeps); // Schedule the job*/
         FindTargetQuadrantSystemJob findTargetQuadrantSystemJob = new FindTargetQuadrantSystemJob { // create the "find targets" job
             quadrantMultiHashMap = MovingQuadrantSystem.quadrantMultiHashMap, // the job needs the hashmap
             closestTargetEntityArray = closestTargetEntityArray
@@ -292,3 +268,4 @@ public class FindTargetJobSystem : JobComponentSystem{
         return jobHandle;
     }
 }
+*/
