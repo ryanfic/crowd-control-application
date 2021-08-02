@@ -11,7 +11,7 @@ public class ReynoldsMovementSystem : SystemBase
     protected override void OnUpdate(){
         float deltaTime = Time.DeltaTime;
 
-        JobHandle jobHandle = Entities.ForEach((Entity crowd, ref Translation transl, in ReynoldsMovementValues movement, in ReynoldsBehaviourWeights behaviour)=>{
+        JobHandle jobHandle = Entities.ForEach((Entity crowd, ref Translation transl, ref PreviousMovement prevMovement, in ReynoldsMovementValues movement, in ReynoldsBehaviourWeights behaviour)=>{
             float3 result = float3.zero;
             if(math.distance(movement.fleeMovement,float3.zero) > behaviour.fleeWeight){ //if the flee movement is larger than its weight (its cap)
                 result += math.normalize(movement.fleeMovement) * behaviour.fleeWeight; // scale the movement to the weight, then add it to the overall movement
@@ -25,6 +25,7 @@ public class ReynoldsMovementSystem : SystemBase
             else{
                 result += movement.seekMovement;
             }
+            //Debug.Log("Flock: " + movement.flockMovement);
             if(math.distance(movement.flockMovement,float3.zero) > behaviour.flockWeight){ //if the flock movement is larger than its weight (its cap)
                 result += math.normalize(movement.flockMovement) * behaviour.flockWeight; // scale the movement to the weight, then add it to the overall movement
             }
@@ -34,7 +35,10 @@ public class ReynoldsMovementSystem : SystemBase
             if(math.distance(result,float3.zero) > behaviour.maxVelocity){ // if the overall movement is longer than the maxVelocity
                 result = math.normalize(result) * behaviour.maxVelocity; // scale the overall movement to the maxSpeed (keeping the direction)
             }
-            transl.Value += result * deltaTime; //add movement to the translation            
+            //Debug.Log("Vector: " + result);
+            transl.Value += result * deltaTime; //add movement to the translation 
+               
+            prevMovement.value = result * deltaTime;
         }).Schedule(this.Dependency);
 
         this.Dependency = jobHandle;

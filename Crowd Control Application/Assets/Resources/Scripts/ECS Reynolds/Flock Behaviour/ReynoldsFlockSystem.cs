@@ -32,55 +32,62 @@ public class ReynoldsFlockSystem : SystemBase
         // Jobs need an Execute function
         //ReadOnly on the Translation because the translation is not being altered
         [ReadOnly] public EntityTypeHandle entityType;
-        public BufferTypeHandle<ReynoldsNearbyFlockPos> nearbyBufferType;
+        public BufferTypeHandle<ReynoldsNearbyFlockPos> nearbyPosBufferType;
+        public BufferTypeHandle<ReynoldsNearbyFlockVel> nearbyVelBufferType;
         [ReadOnly] public ComponentTypeHandle<Translation> translationType;
         [ReadOnly] public ComponentTypeHandle<ReynoldsFlockBehaviour> flockType;
+        [ReadOnly] public ComponentTypeHandle<PreviousMovement> preVelType;
         public ComponentTypeHandle<ReynoldsMovementValues> reynoldsMovementValuesType;
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
-            BufferAccessor<ReynoldsNearbyFlockPos> nearbyBuffers = chunk.GetBufferAccessor<ReynoldsNearbyFlockPos>(nearbyBufferType);
+            BufferAccessor<ReynoldsNearbyFlockPos> nearbyPosBuffers = chunk.GetBufferAccessor<ReynoldsNearbyFlockPos>(nearbyPosBufferType);
+            BufferAccessor<ReynoldsNearbyFlockVel> nearbyVelBuffers = chunk.GetBufferAccessor<ReynoldsNearbyFlockVel>(nearbyVelBufferType);
             NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
             NativeArray<ReynoldsFlockBehaviour> flockArray = chunk.GetNativeArray(flockType);
+            NativeArray<PreviousMovement> preVelArray = chunk.GetNativeArray(preVelType);
             NativeArray<ReynoldsMovementValues> movementArray = chunk.GetNativeArray(reynoldsMovementValuesType);
 
             for(int i = 0; i < chunk.Count; i++){
                 Entity entity = entityArray[i];
-                DynamicBuffer<ReynoldsNearbyFlockPos> buffer = nearbyBuffers[i];
+                DynamicBuffer<ReynoldsNearbyFlockPos> posBuffer = nearbyPosBuffers[i];
+                DynamicBuffer<ReynoldsNearbyFlockVel> velBuffer = nearbyVelBuffers[i];
                 Translation trans = transArray[i];
                 ReynoldsFlockBehaviour flockBehaviour = flockArray[i];
+                PreviousMovement preVel = preVelArray[i];
                 ReynoldsMovementValues movement = movementArray[i];
-
-
 
                 float3 agentPosition = trans.Value; // the position of the seeker
 
-                DynamicBuffer<float3> nearCrowdPosList = buffer.Reinterpret<float3>(); // reinterpret the buffer so that it is used like a buffer of float3s
+                DynamicBuffer<float3> nearCrowdPosList = posBuffer.Reinterpret<float3>(); // reinterpret the buffer so that it is used like a buffer of float3s
                 nearCrowdPosList.Clear();
+
+                DynamicBuffer<float3> nearCrowdVelList = velBuffer.Reinterpret<float3>(); // reinterpret the buffer so that it is used like a buffer of float3s
+                nearCrowdVelList.Clear();
 
 
                 float searchRadius = math.max(flockBehaviour.CohesionRadius,flockBehaviour.AvoidanceRadius); // Choose the farther radius
                 
                 int hashMapKey = MovingQuadrantSystem.GetPositionHashMapKey(trans.Value); // Calculate the hash key of the seeker in question
 
-                FindCrowdAgents(hashMapKey, agentPosition, ref nearCrowdPosList, ref searchRadius); // Seach the quadrant that the seeker is in
-                FindCrowdAgents(hashMapKey + 1,agentPosition, ref nearCrowdPosList, ref searchRadius); // search the quadrant to the right
-                FindCrowdAgents(hashMapKey - 1,agentPosition, ref nearCrowdPosList, ref searchRadius); // search the quadrant to the left
-                FindCrowdAgents(hashMapKey + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // quadrant above
-                FindCrowdAgents(hashMapKey - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // quadrant below
-                FindCrowdAgents(hashMapKey + 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // up right
-                FindCrowdAgents(hashMapKey - 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // up left
-                FindCrowdAgents(hashMapKey + 1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // down right
-                FindCrowdAgents(hashMapKey -1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, ref nearCrowdPosList, ref searchRadius); // down left
+                FindCrowdAgents(hashMapKey, agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // Seach the quadrant that the seeker is in
+                FindCrowdAgents(hashMapKey + 1,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // search the quadrant to the right
+                FindCrowdAgents(hashMapKey - 1,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // search the quadrant to the left
+                FindCrowdAgents(hashMapKey + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant above
+                FindCrowdAgents(hashMapKey - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant below
+                FindCrowdAgents(hashMapKey + 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up right
+                FindCrowdAgents(hashMapKey - 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up left
+                FindCrowdAgents(hashMapKey + 1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down right
+                FindCrowdAgents(hashMapKey -1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down left
 
-                movementArray[i] = GetFlockingBehaviour(ref trans, ref nearCrowdPosList, ref flockBehaviour, movement);
+                movementArray[i] = GetFlockingBehaviour(ref trans, ref preVel.value, ref nearCrowdPosList, ref nearCrowdVelList, ref flockBehaviour, movement);
             }
         }
 
 
 
         // Find nearby crowd agents using a buffer
-        private void FindCrowdAgents(int hashMapKey, float3 agentPosition, ref DynamicBuffer<float3> nearbyCrowdPosList, ref float nearbyRadius){
+        private void FindCrowdAgents(int hashMapKey, float3 agentPosition, Entity agentEntity , ref DynamicBuffer<float3> nearbyCrowdPosList,ref DynamicBuffer<float3> nearbyCrowdVelList, ref float nearbyRadius){
             // Get the data from the quadrant that the seeker belongs to
             MovingQuadrantData quadData;
             NativeMultiHashMapIterator<int> nativeMultiHashMapIterator;
@@ -88,11 +95,12 @@ public class ReynoldsFlockSystem : SystemBase
                 do{ //if there is at least one thing in the quadrant, try getting more
                     if(MovingQuadrantEntity.TypeEnum.Crowd == quadData.quadrantEntity.typeEnum){ // make sure the other entity is a crowd agent
                         float dist = math.distance(agentPosition, quadData.position);
-                        if(dist < nearbyRadius  && dist > 0.01f) 
+                        if(dist < nearbyRadius  && agentEntity != quadData.entity) 
                         {
                             
                             //this target is within cohesion radius
                             nearbyCrowdPosList.Add(quadData.position);
+                            nearbyCrowdVelList.Add(quadData.velocity);
                         }
                     }
                 } while(quadrantMultiHashMap.TryGetNextValue(out quadData, ref nativeMultiHashMapIterator));
@@ -100,28 +108,26 @@ public class ReynoldsFlockSystem : SystemBase
         }
 
         // Apply the flocking behaviour using a buffer
-        private ReynoldsMovementValues GetFlockingBehaviour(ref Translation agentTranslation, ref DynamicBuffer<float3> nearbyCrowdPosList,  ref ReynoldsFlockBehaviour flockBehaviour, ReynoldsMovementValues movement){
+        private ReynoldsMovementValues GetFlockingBehaviour(ref Translation agentTranslation, ref float3 preVelocity, ref DynamicBuffer<float3> nearbyCrowdPosList, ref DynamicBuffer<float3> nearbyCrowdVelList,  ref ReynoldsFlockBehaviour flockBehaviour, ReynoldsMovementValues movement){
             float3 move = float3.zero; // where the agent will move
             // Calculate Avoidance first
             float3 avoidance = CalculateAvoidance(ref agentTranslation.Value, ref nearbyCrowdPosList, ref flockBehaviour);
             //if the avoidance is not zero
             if(!avoidance.Equals(float3.zero))
             {
-                //if the avoidance is not  (The square of the length of the position is greater than the square of the weights)
-                if(math.distancesq(float3.zero,avoidance) > flockBehaviour.AvoidanceWeight * flockBehaviour.AvoidanceWeight)
-                {
-                    //normalize the movement vector
-                    avoidance = math.normalize(avoidance);
-                    avoidance *= flockBehaviour.AvoidanceWeight;
-                }
+
+                avoidance = math.normalize(avoidance);
+                avoidance *= flockBehaviour.AvoidanceWeight;
 
                 move += avoidance;
+                //Debug.Log("Move after avoid: " +move);
             }
 
             // Calculate cohesion
-            float3 cohesion = CalculateCohesion(ref agentTranslation.Value, ref nearbyCrowdPosList, ref flockBehaviour);
+            float3 cohesion = CalculateCohesion(ref agentTranslation.Value, ref preVelocity, ref nearbyCrowdPosList, ref nearbyCrowdVelList, ref flockBehaviour);
             if(!cohesion.Equals(float3.zero))
             {
+                //Debug.Log("Cohes Dst Sq: " +math.distancesq(float3.zero,cohesion));
                 //if the avoidance is not normalized  (The square of the length of the position is greater than the square of the weights)
                 if(math.distancesq(float3.zero,cohesion) > flockBehaviour.CohesionWeight * flockBehaviour.CohesionWeight)
                 {
@@ -131,6 +137,7 @@ public class ReynoldsFlockSystem : SystemBase
                 }
 
                 move += cohesion;
+                //Debug.Log("Move after cohes: " +move);
             }
             // May want to calculate alignment after, but not at time of writing this
 
@@ -141,13 +148,9 @@ public class ReynoldsFlockSystem : SystemBase
                 fleeMovement = movement.fleeMovement
             };
 
+            //Debug.Log("Flock stored: " +movementValues.flockMovement);
             return movementValues;
             //movement.flockMovement = move;
-
-
-
-
-
 
 
             //float moveSpeed = 5f; //movement speed
@@ -171,11 +174,11 @@ public class ReynoldsFlockSystem : SystemBase
                 //if the item is within the avoidance radius
                 if(math.distancesq(item,agentPosition) < flockBehaviour.AvoidanceRadius * flockBehaviour.AvoidanceRadius)
                 {
-                    avoidanceMove += (agentPosition - item);//add the vector from item's position to the agent into the average
+                    avoidanceMove += (agentPosition - item);
+                                                            //add the vector from the projected position to item's position into the average
                                                                                 //this makes it relative to the agent as well
                     nAvoid++; //increment the number of neighbours to avoid
                 }
-                
             }
             if(nAvoid > 0)
             {
@@ -185,7 +188,7 @@ public class ReynoldsFlockSystem : SystemBase
         }
 
         // Calculate the cohesion using a buffer
-        private float3 CalculateCohesion(ref float3 agentPosition, ref DynamicBuffer<float3> context,  ref ReynoldsFlockBehaviour flockBehaviour){
+        private float3 CalculateCohesion(ref float3 agentPosition, ref float3 preVelocity, ref DynamicBuffer<float3> context, ref DynamicBuffer<float3> contextVelocity,  ref ReynoldsFlockBehaviour flockBehaviour){
             //if no neighbours, return no adjustment
             if(context.Length == 0)
             {
@@ -194,16 +197,27 @@ public class ReynoldsFlockSystem : SystemBase
             int count = 0;
             //add all points together and average
             float3 cohesionMove = float3.zero;
-            foreach (float3 item in context)
-            {
-                if(math.distancesq(item,agentPosition) < flockBehaviour.CohesionRadius * flockBehaviour.CohesionRadius)
-                {
-                    cohesionMove += item;
-                    count++;
-                }
-            }
-            cohesionMove /= count;
+            for(int i = 0; i < context.Length; i++){
+                float3 item = context[i];
+                float3 velocity = contextVelocity[i];
 
+                float angle = math.degrees(math.acos(math.dot(velocity, math.normalize(preVelocity))));
+
+                //Debug.Log("Angle: " + angle);
+                //Debug.Log("Is a number? " + (angle == angle));
+
+                if(angle == angle){
+                    if(math.distancesq(item,agentPosition) < flockBehaviour.CohesionRadius * flockBehaviour.CohesionRadius && angle < 45){
+                        cohesionMove += item;
+                        count++;
+                    }
+                }                
+            }
+                
+            if(count > 0){
+                cohesionMove /= count;
+            }
+        
             //create offset from agent position
             cohesionMove -= agentPosition;
             return cohesionMove;
@@ -214,8 +228,10 @@ public class ReynoldsFlockSystem : SystemBase
         flockQueryDec = new EntityQueryDesc{
             All = new ComponentType[]{
                 typeof(ReynoldsNearbyFlockPos),
+                typeof(ReynoldsNearbyFlockVel),
                 ComponentType.ReadOnly<Translation>(),
                 ComponentType.ReadOnly<ReynoldsFlockBehaviour>(),
+                ComponentType.ReadOnly<PreviousMovement>(),
                 typeof(ReynoldsMovementValues)
             }
         };
@@ -229,9 +245,11 @@ public class ReynoldsFlockSystem : SystemBase
         FlockBehaviourJob flockBehaviourJob = new FlockBehaviourJob{ // creates the "find nearby crowd" job
             quadrantMultiHashMap = MovingQuadrantSystem.quadrantMultiHashMap,
             entityType = GetEntityTypeHandle(),
-            nearbyBufferType = GetBufferTypeHandle<ReynoldsNearbyFlockPos>(),
+            nearbyPosBufferType = GetBufferTypeHandle<ReynoldsNearbyFlockPos>(),
+            nearbyVelBufferType = GetBufferTypeHandle<ReynoldsNearbyFlockVel>(),
             translationType = GetComponentTypeHandle<Translation>(true),
             flockType = GetComponentTypeHandle<ReynoldsFlockBehaviour>(true),
+            preVelType = GetComponentTypeHandle<PreviousMovement>(true),
             reynoldsMovementValuesType = GetComponentTypeHandle<ReynoldsMovementValues>()
         };
         JobHandle jobHandle = flockBehaviourJob.Schedule(flockQuery, this.Dependency);

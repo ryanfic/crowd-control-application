@@ -22,6 +22,7 @@ public class GoHomeSystem : SystemBase
         [ReadOnly] public ComponentTypeHandle<GoHomeAction> goHomeType;
         [ReadOnly] public ComponentTypeHandle<Translation> translationType;
         [ReadOnly] public BufferTypeHandle<Action> actionBufferType;
+        
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
             NativeArray<Entity> entityArray = chunk.GetNativeArray(entityType);
@@ -30,12 +31,17 @@ public class GoHomeSystem : SystemBase
             NativeArray<Translation> transArray = chunk.GetNativeArray(translationType);
             BufferAccessor<Action> actionBuffers = chunk.GetBufferAccessor<Action>(actionBufferType);
 
+            
+
             for(int i = 0; i < chunk.Count; i++){   
                 Entity entity = entityArray[i];
                 DynamicBuffer<Action> actions = actionBuffers[i];
                 HasReynoldsSeekTargetPos seek = reynoldsArray[i];
                 GoHomeAction data = goHomeArray[i];
                 Translation trans = transArray[i];
+                
+                //Debug.Log("Something? " + copy.Value);
+                
 
                 if(actions.Length > 0){ //if there are actions
                     if(actions[0].id == data.id){ //if the current action is the same as the action in the first position 
@@ -43,10 +49,11 @@ public class GoHomeSystem : SystemBase
                             //Remove the entity from the simulation (the crowd agent is going home)
                             Debug.Log("Going home!");
                             // loop through all of the actions in the agent's list, and destroy all of the data holder entities
-                            for(int j = 0; j < actions.Length; j++){
+                            /*for(int j = 0; j < actions.Length; j++){
                                 entityCommandBuffer.DestroyEntity(chunkIndex,actions[j].dataHolder);
                             }  
-                            entityCommandBuffer.DestroyEntity(chunkIndex, entity); // remove the crowd agent
+                            entityCommandBuffer.DestroyEntity(chunkIndex, entity); // remove the crowd agent*/
+                            entityCommandBuffer.AddComponent<CrowdToDelete>(chunkIndex,entity, new CrowdToDelete{});
                         }
                     }
                     else{ // if there are actions but this action is not the right one
@@ -89,6 +96,8 @@ public class GoHomeSystem : SystemBase
     protected override void OnUpdate(){
         EntityQuery goHomeQuery = GetEntityQuery(goHomeQueryDec); // query the entities
 
+        //this.EntityManager.GetComponentGameObject<Transform>();
+
         GoHomeJob homeJob = new GoHomeJob{ // creates the "go home" job
             entityCommandBuffer = commandBufferSystem.CreateCommandBuffer().AsParallelWriter(),
             entityType =  GetEntityTypeHandle(),
@@ -96,6 +105,7 @@ public class GoHomeSystem : SystemBase
             goHomeType = GetComponentTypeHandle<GoHomeAction>(true),
             translationType = GetComponentTypeHandle<Translation>(true),
             actionBufferType = GetBufferTypeHandle<Action>(true)
+            
         };
         JobHandle jobHandle = homeJob.Schedule(goHomeQuery, this.Dependency);
 

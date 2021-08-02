@@ -103,7 +103,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 73f1f9dfc8233c8489f8eacc5a55b45c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  goHomePriority: 2
+  goHomePriority: 4
   goHomeActionID: 1
   homePoint:
     x: 0
@@ -132,13 +132,13 @@ MonoBehaviour:
   flocking: 1
   fleeing: 0
   seeking: 1
-  flockingWeight: 5
+  flockingWeight: 10
   fleeingWeight: 0
   seekingWeight: 2
   avoidanceRadius: 1
-  avoidanceWeight: 10
-  cohesionRadius: 1.5
-  cohesionWeight: 0.3
+  avoidanceWeight: 1.5
+  cohesionRadius: 5
+  cohesionWeight: 0.1
   fleeTargetPos:
     x: 0
     y: 0
@@ -647,8 +647,8 @@ TrailRenderer:
       m_RotationOrder: 4
     colorGradient:
       serializedVersion: 2
-      key0: {r: 0.003680706, g: 1, b: 0, a: 1}
-      key1: {r: 0.006452322, g: 1, b: 0, a: 1}
+      key0: {r: 1, g: 0.66759884, b: 0, a: 1}
+      key1: {r: 0.9568628, g: 0.6431373, b: 0.011764707, a: 1}
       key2: {r: 0, g: 0, b: 0, a: 0}
       key3: {r: 0, g: 0, b: 0, a: 0}
       key4: {r: 0, g: 0, b: 0, a: 0}

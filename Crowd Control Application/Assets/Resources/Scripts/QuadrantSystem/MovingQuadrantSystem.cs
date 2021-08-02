@@ -12,6 +12,7 @@ using MousePositionUtil;
 public struct MovingQuadrantData{
     public Entity entity;
     public float3 position;
+    public float3 velocity;
     public MovingQuadrantEntity quadrantEntity;
 }
 
@@ -86,12 +87,15 @@ public class MovingQuadrantSystem : SystemBase
         [DeallocateOnJobCompletion] public NativeArray<Entity> entities;
         [DeallocateOnJobCompletion] public NativeArray<Translation> translations; // where the entity is
         [DeallocateOnJobCompletion] public NativeArray<MovingQuadrantEntity> quadEntTypes; // what type of stationary quadrant entity the entity is
+        [DeallocateOnJobCompletion] public NativeArray<PreviousMovement> prevMovements; // what type of stationary quadrant entity the entity is
 
         public void Execute(int i){
-            int hashMapKey = GetPositionHashMapKey(translations[i].Value); //get the entity's hashmap key
+            float3 pos = translations[i].Value + prevMovements[i].value;
+            int hashMapKey = GetPositionHashMapKey(pos); //get the entity's hashmap key
             quadrantMultiHashMap.Add(hashMapKey, new MovingQuadrantData{
                     entity = entities[i],
-                    position = translations[i].Value,
+                    position = pos,
+                    velocity = math.normalize(prevMovements[i].value),
                     quadrantEntity = quadEntTypes[i]
                 }); //add the entity and its relevant values to the hashmap
         }
@@ -106,7 +110,8 @@ public class MovingQuadrantSystem : SystemBase
         quadrantQueryDesc = new EntityQueryDesc{
             All = new ComponentType[]{
                 ComponentType.ReadOnly<Translation>(),
-                ComponentType.ReadOnly<MovingQuadrantEntity>()
+                ComponentType.ReadOnly<MovingQuadrantEntity>(),
+                ComponentType.ReadOnly<PreviousMovement>()
             }
         }; // define what we are looking for in the add job
 
@@ -124,7 +129,8 @@ public class MovingQuadrantSystem : SystemBase
         NativeArray<Entity> entityArray = entityQuery.ToEntityArray(Allocator.TempJob);// create the entity array
         NativeArray<Translation> transArray = entityQuery.ToComponentDataArray<Translation>(Allocator.TempJob);
         NativeArray<MovingQuadrantEntity> movingQuadEntArray = entityQuery.ToComponentDataArray<MovingQuadrantEntity>(Allocator.TempJob);// create the stationary quadrant entities array
-        
+        NativeArray<PreviousMovement> prevMoveArray = entityQuery.ToComponentDataArray<PreviousMovement>(Allocator.TempJob);
+
         //the length is calculated from above
         //NativeMultiHashMap<int, QuadrantData> quadrantMultiHashMap = new NativeMultiHashMap<int, QuadrantData>(entityQuery.CalculateLength(),Allocator.TempJob);
 
@@ -142,7 +148,8 @@ public class MovingQuadrantSystem : SystemBase
             quadrantMultiHashMap = quadrantMultiHashMap.AsParallelWriter(), //ToConcurrent used to allow for concurrent writing
             entities = entityArray,
             translations = transArray,
-            quadEntTypes = movingQuadEntArray
+            quadEntTypes = movingQuadEntArray,
+            prevMovements = prevMoveArray
         };
         JobHandle jobHandle = IJobParallelForExtensions.Schedule(setQuadrantDataHashMapJob, entityArray.Length, 32, this.Dependency);
         //JobForEachExtensions.Schedule(setQuadrantDataHashMapJob, entityQuery);

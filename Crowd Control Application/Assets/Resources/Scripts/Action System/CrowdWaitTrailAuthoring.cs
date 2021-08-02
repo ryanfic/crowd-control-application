@@ -26,8 +26,6 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             dataHolder = homeHolder
         });
 
-
-
         dstManager.AddComponentData<GoHomeStorage>(homeHolder, new GoHomeStorage { // add the go home storage component to the holder
             id =  goHomeActionID,
             homePoint = homePoint
@@ -56,5 +54,12 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         }); 
 
         dstManager.AddComponent<CopyTransformToGameObject>(entity);
+
+        //dstManager.AddComponent<CompanionLink>(entity);
+
+        
+        dstManager.AddComponentData<PreviousMovement>(entity, new PreviousMovement{ //add the Previous movement component to the crowd agent
+            value = new float3(0f,0f,0f)
+        }); 
     }
 }

@@ -57,7 +57,8 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
  
     public void Convert(Entity entity, EntityManager eManager, GameObjectConversionSystem conversionSystem){
         if(flocking){ // if the agent has the flocking behaviour
-            DynamicBuffer<ReynoldsNearbyFlockPos> dynamicBuffer = eManager.AddBuffer<ReynoldsNearbyFlockPos>(entity); // add the nearby flock positioin buffer to the entity
+            DynamicBuffer<ReynoldsNearbyFlockPos> dynamicBuffer = eManager.AddBuffer<ReynoldsNearbyFlockPos>(entity); // add the nearby flock position buffer to the entity
+            DynamicBuffer<ReynoldsNearbyFlockVel> dynamicBuffer2 = eManager.AddBuffer<ReynoldsNearbyFlockVel>(entity); // add the nearby flock Velocity buffer to the entity
             eManager.AddComponent<ReynoldsFlockBehaviour>(entity); // Add a Reynolds Flock Behaviour to the entity
             eManager.SetComponentData(entity,new ReynoldsFlockBehaviour{  // Set the Reynolds Flock Behaviour Data
                 AvoidanceRadius = this.avoidanceRadius,
