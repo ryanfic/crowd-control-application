@@ -73,12 +73,12 @@ public class ReynoldsFlockSystem : SystemBase
                 FindCrowdAgents(hashMapKey, agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // Seach the quadrant that the seeker is in
                 FindCrowdAgents(hashMapKey + 1,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // search the quadrant to the right
                 FindCrowdAgents(hashMapKey - 1,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // search the quadrant to the left
-                FindCrowdAgents(hashMapKey + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant above
-                FindCrowdAgents(hashMapKey - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant below
-                FindCrowdAgents(hashMapKey + 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up right
-                FindCrowdAgents(hashMapKey - 1 + MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up left
-                FindCrowdAgents(hashMapKey + 1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down right
-                FindCrowdAgents(hashMapKey -1 - MovingQuadrantSystem.quadrantYMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down left
+                FindCrowdAgents(hashMapKey + MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant above
+                FindCrowdAgents(hashMapKey - MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // quadrant below
+                FindCrowdAgents(hashMapKey + 1 + MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up right
+                FindCrowdAgents(hashMapKey - 1 + MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // up left
+                FindCrowdAgents(hashMapKey + 1 - MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down right
+                FindCrowdAgents(hashMapKey -1 - MovingQuadrantSystem.quadrantZMultiplier,agentPosition, entity, ref nearCrowdPosList, ref nearCrowdVelList, ref searchRadius); // down left
 
                 movementArray[i] = GetFlockingBehaviour(ref trans, ref preVel.value, ref nearCrowdPosList, ref nearCrowdVelList, ref flockBehaviour, movement);
             }
@@ -206,7 +206,7 @@ public class ReynoldsFlockSystem : SystemBase
                 //Debug.Log("Angle: " + angle);
                 //Debug.Log("Is a number? " + (angle == angle));
 
-                if(angle == angle){
+                if(angle == angle){     
                     if(math.distancesq(item,agentPosition) < flockBehaviour.CohesionRadius * flockBehaviour.CohesionRadius && angle < 45){
                         cohesionMove += item;
                         count++;

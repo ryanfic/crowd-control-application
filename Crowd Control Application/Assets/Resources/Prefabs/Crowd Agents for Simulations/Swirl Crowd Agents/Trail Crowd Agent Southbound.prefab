@@ -69,7 +69,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: 216757bd4295bf349bac58bd39f1b822, type: 2}
+  - {fileID: 2100000, guid: a279a0ac0e4d63947923729257f90630, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -105,17 +105,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   goHomePriority: 4
   goHomeActionID: 1
-  homePoint:
-    x: 0
-    y: 0
-    z: -10
-  goToAndWaitPriority: 3
-  goToAndWaitActionID: 2
-  timeToWait: 300
-  waitPoint:
-    x: 0
-    y: 0
-    z: -10
+  spawnDirection: 0
+  leftDestinationPercent: 0
+  rightDestinationPercent: 0
+  straightDestinationPercent: 0.5
 --- !u!114 &3399064311851672315
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -128,17 +121,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e1f21b2eeb3120f4d8b1322d1bd39279, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxVelocity: 2
+  maxVelocity: 0.5
   flocking: 1
   fleeing: 0
   seeking: 1
   flockingWeight: 10
   fleeingWeight: 0
   seekingWeight: 2
-  avoidanceRadius: 1
-  avoidanceWeight: 1.5
+  avoidanceRadius: 0.75
+  avoidanceWeight: 2.1
   cohesionRadius: 5
-  cohesionWeight: 0.1
+  cohesionWeight: 1
   fleeTargetPos:
     x: 0
     y: 0
@@ -452,7 +445,7 @@ TrailRenderer:
   m_SortingLayerID: 0
   m_SortingLayer: 0
   m_SortingOrder: 0
-  m_Time: 5
+  m_Time: 10
   m_Parameters:
     serializedVersion: 3
     widthMultiplier: 0.3

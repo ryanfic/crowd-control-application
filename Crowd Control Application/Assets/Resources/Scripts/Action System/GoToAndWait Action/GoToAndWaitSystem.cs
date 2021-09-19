@@ -10,7 +10,7 @@ using crowd_Actions;
 public class GoToAndWaitSystem : SystemBase
 {
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
-    private static float tolerance = 10f;
+    private static float tolerance = 1f;
 
     private EntityQueryDesc gTAWQueryDec;
 

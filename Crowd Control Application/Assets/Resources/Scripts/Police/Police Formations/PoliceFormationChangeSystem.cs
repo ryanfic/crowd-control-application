@@ -46,7 +46,7 @@ public class PoliceFormationChangeSystem : SystemBase {
         World.GetOrCreateSystem<UIController>().On2Down += TwoDownResponse;
 
 
-        Debug.Log("Let's see if this displays");
+        //Debug.Log("Let's see if this displays");
         //Obtain Voice Controller - There should only be one
         /*PoliceUnitVoiceController[] voiceControllers = Object.FindObjectsOfType<PoliceUnitVoiceController>();
         if(voiceControllers.Length > 0){
