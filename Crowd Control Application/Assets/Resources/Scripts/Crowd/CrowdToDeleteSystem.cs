@@ -16,6 +16,10 @@ public class CrowdToDeleteSystem : SystemBase
     private EndSimulationEntityCommandBufferSystem commandBufferSystem; // the command buffer system that runs after everything else
     private EntityQueryDesc crowdDeleteQueryDesc;
     private EntityQueryDesc crowdDeleteWithTransformQueryDesc;
+    public event System.EventHandler OnCrowdAgentDeleted; 
+    private NativeQueue<CrowdRemoved> eventQueue;
+    private struct CrowdRemoved : IComponentData{
+    }
 
     //A job for removing the name of a police unit that is to be deleted to the voice controller
     [BurstCompile]
@@ -25,6 +29,8 @@ public class CrowdToDeleteSystem : SystemBase
         [ReadOnly] public EntityTypeHandle entityType;
         [ReadOnly] public BufferTypeHandle<Child> childBufferType;
         [ReadOnly] public BufferTypeHandle<Action> actionBufferType;
+
+        public NativeQueue<CrowdRemoved>.ParallelWriter eventQueueParallel;
         
 
         public void Execute(ArchetypeChunk chunk, int chunkIndex, int firstEntityIndex){
@@ -46,7 +52,7 @@ public class CrowdToDeleteSystem : SystemBase
                         commandBuffer.DestroyEntity(chunkIndex,children[j].Value); //remove the child
                     }
                 }
-                //)
+                eventQueueParallel.Enqueue(new CrowdRemoved{});
                 
                 commandBuffer.DestroyEntity(chunkIndex,entity); //remove the crowd agent
             }
@@ -71,8 +77,14 @@ public class CrowdToDeleteSystem : SystemBase
                 ComponentType.ReadOnly<Action>()
             }
         };
+
+        eventQueue = new NativeQueue<CrowdRemoved>(Allocator.Persistent); //create the event queue
         
         base.OnCreate();
+    }
+    protected override void OnDestroy(){
+        eventQueue.Dispose();
+        base.OnDestroy();
     }
 
     protected override void OnUpdate(){
@@ -89,18 +101,25 @@ public class CrowdToDeleteSystem : SystemBase
         EntityQuery deleteQuery = GetEntityQuery(crowdDeleteQueryDesc); // query the entities
             //Add label job
         
-
+        NativeQueue<CrowdRemoved>.ParallelWriter eventQueueParallel = eventQueue.AsParallelWriter();
         
         DeleteCrowdEntityJob deleteCrowdJob = new DeleteCrowdEntityJob{ 
             commandBuffer = commandBuffer,
             entityType =  GetEntityTypeHandle(),
             childBufferType = GetBufferTypeHandle<Child>(true),
-            actionBufferType = GetBufferTypeHandle<Action>(true)
+            actionBufferType = GetBufferTypeHandle<Action>(true),
+            eventQueueParallel = eventQueueParallel
         };
 
         JobHandle deleteCrowdJobHandle = deleteCrowdJob.Schedule(deleteQuery, this.Dependency); //schedule the job
         commandBufferSystem.AddJobHandleForProducer(deleteCrowdJobHandle); // make sure the components get added/removed for the job
-        this.Dependency = deleteCrowdJobHandle;  
+
+        deleteCrowdJobHandle.Complete();
+
+        while(eventQueue.TryDequeue(out CrowdRemoved nameEvent)){
+            OnCrowdAgentDeleted?.Invoke(this, System.EventArgs.Empty);
+            //Debug.Log("Agent Deleted (In system)");
+        } 
     }
 }
 

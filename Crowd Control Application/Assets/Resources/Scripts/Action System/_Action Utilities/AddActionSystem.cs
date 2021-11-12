@@ -301,8 +301,8 @@ public class AddActionSystem : SystemBase {
         };
 
         JobHandle addActionHandle = addActionJob.Schedule(addActionQuery, this.Dependency);
-
-        this.Dependency = addActionHandle;
+        addActionHandle.Complete();
+        //this.Dependency = addActionHandle;
         
 
 

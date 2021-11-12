@@ -35,8 +35,10 @@ public class ReynoldsMovementSystem : SystemBase
             if(math.distance(result,float3.zero) > behaviour.maxVelocity){ // if the overall movement is longer than the maxVelocity
                 result = math.normalize(result) * behaviour.maxVelocity; // scale the overall movement to the maxSpeed (keeping the direction)
             }
+            result.y = 0f;
             //Debug.Log("Vector: " + result);
             transl.Value += result * deltaTime; //add movement to the translation 
+            
                
             prevMovement.value = result * deltaTime;
         }).Schedule(this.Dependency);

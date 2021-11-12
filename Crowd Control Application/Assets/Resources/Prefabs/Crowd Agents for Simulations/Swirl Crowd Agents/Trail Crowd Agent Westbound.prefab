@@ -411,7 +411,7 @@ MonoBehaviour:
   goHomeActionID: 1
   spawnDirection: 2
   leftDestinationPercent: 0
-  rightDestinationPercent: 0
+  rightDestinationPercent: 0.5
   straightDestinationPercent: 0.5
 --- !u!114 &5158141595107587437
 MonoBehaviour:
@@ -532,7 +532,7 @@ MonoBehaviour:
     m_Template: {fileID: 0}
     m_CollisionResponse:
       m_Override: 0
-      m_Value: 0
+      m_Value: 1
     m_Friction:
       m_Override: 0
       m_Value:

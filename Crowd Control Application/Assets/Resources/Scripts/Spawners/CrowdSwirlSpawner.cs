@@ -10,7 +10,10 @@ public class CrowdSwirlSpawner : MonoBehaviour
     private Quaternion rotation;
     public GameObject[] prefabs;
     public float[] percentsToSpawn;
-    public int numberToSpawn = 10;
+    public int numberToSpawnPerSpawn = 10;
+    public CrowdSwirlCounter crowdCounter;
+    private int totalNumberToSpawn;
+    private int numberCrowdSpawned = 0;
     public float delay = 0f;
     public bool repeatSpawn = false;
     public float repeatSpawnDelay = 0f;
@@ -20,6 +23,7 @@ public class CrowdSwirlSpawner : MonoBehaviour
     // Start is called before the first frame update
     void Start()
     {   
+        totalNumberToSpawn = crowdCounter.CrowdToSpawn/crowdCounter.numSpawners;
         if(!repeatSpawn){
             Invoke("SpawnCrowd",delay);
         }
@@ -36,12 +40,12 @@ public class CrowdSwirlSpawner : MonoBehaviour
 
         numAgentsToSpawn = new int[percentsToSpawn.Length]; //set up the array of numbers of each agent to spawn
         for(int i = 0; i < numAgentsToSpawn.Length; i++){
-            numAgentsToSpawn[i] = (int)Mathf.Floor(percentsToSpawn[i]*numberToSpawn); // set the number of agents to spawn based off of the percents
+            numAgentsToSpawn[i] = (int)Mathf.Floor(percentsToSpawn[i]*numberToSpawnPerSpawn); // set the number of agents to spawn based off of the percents
         }
         int[] numAgentsSpawned = new int[percentsToSpawn.Length]; //set up the array to count number of each agent spawned
 
         float totArea = xScale * zScale; // area of rect we will spawn agents in
-        float spawnArea = totArea / numberToSpawn; // area for each agent to spawn within
+        float spawnArea = totArea / numberToSpawnPerSpawn; // area for each agent to spawn within
         float sideLength = Mathf.Sqrt(spawnArea);
         
         float xPartitions = Mathf.Ceil(xScale/sideLength);
@@ -61,7 +65,7 @@ public class CrowdSwirlSpawner : MonoBehaviour
         IList<Vector3> positions = new List<Vector3>();
 
         Vector3 position;
-        if(xPartitions < zPartitions){
+        /*if(xPartitions < zPartitions){
             Debug.Log("X < Z");
             for(int j = 0; j < zPartitions; j++){ // j is in the z direction
                 for(int i = 0; i < xPartitions; i++){ // i is in the x direction
@@ -124,36 +128,44 @@ public class CrowdSwirlSpawner : MonoBehaviour
                     }
                 }
             }
-        }
-            /*for(int i = 0; i < xPartitions; i++){ // i is in the x direction
+        }*/
+            for(int i = 0; i < xPartitions; i++){ // i is in the x direction
                 for(int j = 0; j < zPartitions; j++){ // j is in the z direction
-                    if(availableTypes.Count>0){
-                        int type = availableTypes[((int)UnityEngine.Random.Range(0,availableTypes.Count))]; // choose a type
-                    
-                        //Debug.Log("TYPE: " + type);
-                        float xOffset = UnityEngine.Random.Range(-xScale/(2*xPartitions),xScale/(2*xPartitions));
-                        float zOffset = UnityEngine.Random.Range(-zScale/(2*zPartitions),zScale/(2*zPartitions));
-                        position = new Vector3( // create a vector based on which partition the agent is in
-                            (xOffset-xScale/2)+((i+0.5f)*xScale/xPartitions),
-                            0,
-                            (zOffset-zScale/2)+((j+0.5f)*zScale/zPartitions)
-                        );
-                        position = rotation * position; // rotate the vector
-                        position += this.transform.position; // move the position to where the game object is
-                        Object.Instantiate(prefabs[type], position,rotation); // create the crowd agent
-                        numAgentsSpawned[type]++;
+                    if(totalNumberToSpawn > numberCrowdSpawned){ //if haven't spawned all the agents to spawn
+                        if(availableTypes.Count>0){ // if there is still a type of crowd agent to spawn
+                            int type = availableTypes[((int)UnityEngine.Random.Range(0,availableTypes.Count))]; // choose a type
+                        
+                            //Debug.Log("TYPE: " + type);
+                            float xOffset = UnityEngine.Random.Range(-xScale/(2*xPartitions),xScale/(2*xPartitions));
+                            float zOffset = UnityEngine.Random.Range(-zScale/(2*zPartitions),zScale/(2*zPartitions));
+                            position = new Vector3( // create a vector based on which partition the agent is in
+                                (xOffset-xScale/2)+((i+0.5f)*xScale/xPartitions),
+                                0,
+                                (zOffset-zScale/2)+((j+0.5f)*zScale/zPartitions)
+                            );
+                            position = rotation * position; // rotate the vector
+                            position += this.transform.position; // move the position to where the game object is
+                            Object.Instantiate(prefabs[type], position,rotation); // create the crowd agent
+                            numAgentsSpawned[type]++;
+                            numberCrowdSpawned++;
 
-                        types.Add(type); // add the type to the list
-                        positions.Add(position); // add the position to the list
+                            types.Add(type); // add the type to the list
+                            positions.Add(position); // add the position to the list
 
-                        //Check if we have reached the number of agents to spawn
-                        if(numAgentsToSpawn[type] <= numAgentsSpawned[type]){
-                            availableTypes.Remove(type);// remove the type from the availableTypes
-                            //Debug.Log("Removed " + type);
+                            //Check if we have reached the number of agents to spawn
+                            if(numAgentsToSpawn[type] <= numAgentsSpawned[type]){
+                                availableTypes.Remove(type);// remove the type from the availableTypes
+                                //Debug.Log("Removed " + type);
+                            }
                         }
                     }
+                    else{ // if we spawned all of the agents we need to
+                        Debug.Log(this.transform.gameObject.name + " finshed spawning! Spawned " + numberCrowdSpawned + " agents out of " + totalNumberToSpawn + ".");
+                        RemoveGameObject();
+                    }
+                        
                 }
-            }*/
+            }
 
         
         //RemoveGameObject();
