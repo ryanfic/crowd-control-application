@@ -40,14 +40,16 @@ public class ReynoldsFleeSystem : SystemBase
                     movementArray[i] = new ReynoldsMovementValues{
                         flockMovement = movement.flockMovement,
                         seekMovement = movement.seekMovement,
-                        fleeMovement = move
+                        fleeMovement = move,
+                        obstacleAvoidanceMovement = movement.obstacleAvoidanceMovement
                     };
                 }
                 else{
                     movementArray[i] = new ReynoldsMovementValues{
                         flockMovement = movement.flockMovement,
                         seekMovement = movement.seekMovement,
-                        fleeMovement = float3.zero
+                        fleeMovement = float3.zero,
+                        obstacleAvoidanceMovement = movement.obstacleAvoidanceMovement
                     };
                 }
             }

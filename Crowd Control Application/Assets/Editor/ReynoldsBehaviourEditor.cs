@@ -70,6 +70,24 @@ public class ReynoldsBehaviourEditor : Editor
                 }
                 GUILayout.EndVertical();
             }
+            author.avoidingObstacles = GUILayout.Toggle(author.avoidingObstacles, "Avoiding Obstacles"); // update the avoiding obstacles boolean
+            if (author.avoidingObstacles)
+            { //if the agent has the obstacle avoidance behaviour, show the obstacle avoidance information
+                GUILayout.BeginVertical();
+                {
+                    prop = so.FindProperty("obstacleAvoidanceWeight"); // get the obstacle avoidance weight of the agent
+                    EditorGUILayout.PropertyField(prop); // display the obstacle avoidance weight
+                    prop = so.FindProperty("movementPerRay"); // get the movement per ray of the agent
+                    EditorGUILayout.PropertyField(prop); // display the movement per ray of the agent
+                    prop = so.FindProperty("numberOfRays"); // get the number of rays of the agent
+                    EditorGUILayout.PropertyField(prop); // display the number of rays of the agent
+                    prop = so.FindProperty("visionAngle"); // get the vision angle of the agent
+                    EditorGUILayout.PropertyField(prop);
+                    prop = so.FindProperty("visionLength"); // get the vision length of the agent
+                    EditorGUILayout.PropertyField(prop);
+                }
+                GUILayout.EndVertical();
+            }
         }
         GUILayout.EndVertical();
         so.ApplyModifiedProperties();

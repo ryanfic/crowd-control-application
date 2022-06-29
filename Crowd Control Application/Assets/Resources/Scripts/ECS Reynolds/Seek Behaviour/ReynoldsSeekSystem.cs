@@ -35,7 +35,8 @@ public class ReynoldsSeekSystem : SystemBase
                 movementArray[i] = new ReynoldsMovementValues{
                     flockMovement = movement.flockMovement,
                     seekMovement = move,
-                    fleeMovement = movement.fleeMovement
+                    fleeMovement = movement.fleeMovement,
+                    obstacleAvoidanceMovement = movement.obstacleAvoidanceMovement
                 };
             }
         }

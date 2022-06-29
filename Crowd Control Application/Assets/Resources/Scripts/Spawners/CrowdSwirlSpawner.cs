@@ -10,7 +10,7 @@ public class CrowdSwirlSpawner : MonoBehaviour
     private Quaternion rotation;
     public GameObject[] prefabs;
     public float[] percentsToSpawn;
-    public int numberToSpawnPerSpawn = 10;
+    public int numberToSpawnPerSpawn = 50;
     public CrowdSwirlCounter crowdCounter;
     private int totalNumberToSpawn;
     private int numberCrowdSpawned = 0;

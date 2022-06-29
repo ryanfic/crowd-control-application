@@ -35,7 +35,7 @@ public class FramesPerSecond : MonoBehaviour
             yield return new WaitForSeconds(frequency); // Do nothing for a second (or how long frequency is set to)
             fps = 1 / Time.smoothDeltaTime; //recalculate FPS
             avgFPS = ((avgFPS * numFPSAdded) + fps)/(++numFPSAdded);
-            WriteFPSToFile();
+            //WriteFPSToFile();
         }
     }
 

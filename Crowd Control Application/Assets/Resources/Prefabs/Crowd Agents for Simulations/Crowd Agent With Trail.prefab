@@ -317,8 +317,6 @@ GameObject:
   - component: {fileID: 3003992882495082281}
   - component: {fileID: 8858527122426555005}
   - component: {fileID: 305866865730131589}
-  - component: {fileID: 8287098809172356267}
-  - component: {fileID: 3039184532883117653}
   - component: {fileID: 2253965103333154615}
   - component: {fileID: 6666517346319110870}
   - component: {fileID: 8858527122426554994}
@@ -409,17 +407,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   goHomePriority: 2
   goHomeActionID: 1
-  homePoint:
-    x: 0
-    y: 0
-    z: 10
-  goToAndWaitPriority: 3
-  goToAndWaitActionID: 2
-  timeToWait: 300
-  waitPoint:
-    x: 10
-    y: 0
-    z: 20
+  spawnDirection: 0
+  leftDestinationPercent: 0
+  rightDestinationPercent: 0
+  straightDestinationPercent: 1
 --- !u!114 &305866865730131589
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -452,31 +443,6 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
---- !u!114 &8287098809172356267
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8858527122426555002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13ce3547a52942f4a916fafdbfded91e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!114 &3039184532883117653
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8858527122426555002}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1490608c2d804004a8b18ada30970dfe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  typeEnum: 2
 --- !u!114 &2253965103333154615
 MonoBehaviour:
   m_ObjectHideFlags: 0

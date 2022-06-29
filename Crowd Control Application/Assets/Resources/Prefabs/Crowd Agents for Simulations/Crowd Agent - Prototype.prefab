@@ -11,9 +11,8 @@ GameObject:
   - component: {fileID: 4631217853092139305}
   - component: {fileID: 4631217853092139306}
   - component: {fileID: 4631217853092139307}
-  - component: {fileID: 4631217853092139301}
+  - component: {fileID: 4805849713595418167}
   - component: {fileID: 4631217853092139311}
-  - component: {fileID: 4631217853092139296}
   - component: {fileID: 4631217853092139297}
   - component: {fileID: 4631217853092139303}
   - component: {fileID: 4631217853092139300}
@@ -88,7 +87,7 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!114 &4631217853092139301
+--- !u!114 &4805849713595418167
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -97,9 +96,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 4631217853092139298}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78d3a5fdf37cb7b47b1942fe63ad4381, type: 3}
+  m_Script: {fileID: 11500000, guid: ca869b5f08c25cb48816137ef5ec134c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  hasGoHomeAction: 0
+  goHomePriority: 0
+  goHomeActionID: 0
+  homePoint:
+    x: 0
+    y: 0
+    z: 0
+  hasGoToAndWaitAction: 1
   goToAndWaitPriority: 2
   goToAndWaitActionID: 15
   timeToWait: 1000
@@ -107,6 +114,10 @@ MonoBehaviour:
     x: 0
     y: 1
     z: -43
+  hasFollowWayPointsAction: 0
+  followWayPointsPriority: 0
+  followWayPointsID: 0
+  wayPoints: []
 --- !u!114 &4631217853092139311
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -139,18 +150,6 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
---- !u!114 &4631217853092139296
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4631217853092139298}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13ce3547a52942f4a916fafdbfded91e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &4631217853092139297
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -306,23 +305,7 @@ MonoBehaviour:
         Tag06: 0
         Tag07: 0
     m_SerializedVersion: 1
-    m_BelongsTo_Deprecated:
-      m_Override: 0
-      m_Value: 
-    m_CollidesWith_Deprecated:
-      m_Override: 0
-      m_Value: 
-    m_CustomTags_Deprecated:
-      m_Override: 0
-      m_Value: 
-    m_IsTrigger_Deprecated:
-      m_Override: 0
-      m_Value: 0
-    m_RaisesCollisionEvents_Deprecated:
-      m_Override: 0
-      m_Value: 0
   m_SerializedVersion: 1
-  m_ConvexRadius_Deprecated: -1
 --- !u!114 &4631217853092139300
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -336,6 +319,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_MotionType: 0
+  m_Smoothing: 0
   m_Mass: 5
   m_LinearDamping: 0.01
   m_AngularDamping: 0.05

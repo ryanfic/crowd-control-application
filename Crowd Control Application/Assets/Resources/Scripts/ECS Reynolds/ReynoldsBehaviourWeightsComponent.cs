@@ -9,5 +9,5 @@ public struct ReynoldsBehaviourWeights : IComponentData{
     public float flockWeight;
     public float seekWeight;
     public float fleeWeight;
-    
+    public float obstacleAvoidanceWeight;
 }

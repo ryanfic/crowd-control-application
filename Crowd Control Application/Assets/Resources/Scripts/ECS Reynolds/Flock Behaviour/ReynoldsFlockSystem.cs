@@ -145,7 +145,8 @@ public class ReynoldsFlockSystem : SystemBase
             ReynoldsMovementValues movementValues = new ReynoldsMovementValues{
                 flockMovement = move,
                 seekMovement = movement.seekMovement,
-                fleeMovement = movement.fleeMovement
+                fleeMovement = movement.fleeMovement,
+                obstacleAvoidanceMovement = movement.obstacleAvoidanceMovement
             };
 
             //Debug.Log("Flock stored: " +movementValues.flockMovement);

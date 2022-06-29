@@ -18,6 +18,7 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
     public bool flocking = false; // if the agent has the flocking behaviour
     public bool fleeing = false; // if the agent has the fleeing behaviour
     public bool seeking = false; // if the agent has the seeking behaviour
+    public bool avoidingObstacles = false; // if the agent has the obstacle avoidance behaviour
 
     /*
         Behaviour Weights
@@ -29,7 +30,9 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
     public float fleeingWeight = 0f; // how much the fleeing behaviour affects movement
     [Range(0,100)]
     public float seekingWeight = 0f; // how much the seeking behaviour affects movement
-    
+    [Range(0, 100)]
+    public float obstacleAvoidanceWeight = 0f; // how much the seeking behaviour affects movement
+
     /*
         Data used for Flocking
     */
@@ -53,8 +56,18 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
 
     public float3 seekTargetPos = float3.zero; // where the agent move towards
 
+    /*
+     *  Data used for Obstacle Avoidance
+     */
+    public float movementPerRay = 0.5f; // how much movement is able to occur due to one ray
+    public int numberOfRays = 11; // how many rays are fired per agent
+    [Range(0, 360)]
+    public int visionAngle = 180; // angle that the agent can see (is a cone in front of them)
+    [Min(0)]
+    public float visionLength = 1;
 
- 
+
+
     public void Convert(Entity entity, EntityManager eManager, GameObjectConversionSystem conversionSystem){
         if(flocking){ // if the agent has the flocking behaviour
             DynamicBuffer<ReynoldsNearbyFlockPos> dynamicBuffer = eManager.AddBuffer<ReynoldsNearbyFlockPos>(entity); // add the nearby flock position buffer to the entity
@@ -87,18 +100,32 @@ public class ReynoldsBehaviourAuthoring : MonoBehaviour, IConvertGameObjectToEnt
             });
         }
 
-        if(flocking || fleeing || seeking){ //if there is a behaviour exhibited
+        if (avoidingObstacles)
+        {
+            eManager.AddComponent<ObstacleAvoidanceMovementComponent>(entity);
+            eManager.SetComponentData(entity, new ObstacleAvoidanceMovementComponent
+            {
+                movementPerRay = movementPerRay,
+                numberOfRays = numberOfRays,
+                visionAngle = visionAngle,
+                visionLength = visionLength
+            });
+        }
+
+        if(flocking || fleeing || seeking || avoidingObstacles){ //if there is a behaviour exhibited
             eManager.AddComponent<ReynoldsMovementValues>(entity);// add the values component
             eManager.SetComponentData(entity,new ReynoldsMovementValues{  // Set the Reynolds Behaviour Value Data
                 flockMovement = 0f,
                 fleeMovement = 0f,
-                seekMovement = 0f});
+                seekMovement = 0f,
+                obstacleAvoidanceMovement = 0f});
             eManager.AddComponent<ReynoldsBehaviourWeights>(entity);// add the weights component
             eManager.SetComponentData(entity,new ReynoldsBehaviourWeights{  // Set the Reynolds Behaviour Weight Data
                 maxVelocity = this.maxVelocity,
                 flockWeight = flockingWeight,
                 fleeWeight = fleeingWeight,
-                seekWeight = seekingWeight});
+                seekWeight = seekingWeight,
+                obstacleAvoidanceWeight = obstacleAvoidanceWeight});
             
         }
         

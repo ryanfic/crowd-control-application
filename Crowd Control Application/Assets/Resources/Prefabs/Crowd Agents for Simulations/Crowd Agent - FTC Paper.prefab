@@ -186,10 +186,8 @@ GameObject:
   - component: {fileID: 6148935273730231976}
   - component: {fileID: 2400806624464828048}
   - component: {fileID: 6989122209886269536}
-  - component: {fileID: 687755084410927335}
   - component: {fileID: 927630682163949372}
-  - component: {fileID: 8926278558507947282}
-  - component: {fileID: 2507494820635127788}
+  - component: {fileID: 8715528649054120181}
   - component: {fileID: 1704192626930361998}
   - component: {fileID: 6081277108235938671}
   m_Layer: 0
@@ -280,31 +278,6 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
---- !u!114 &687755084410927335
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8218783448138994627}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 0d0453c1ec30ad3418b03750f72e0d6f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  goHomePriority: 2
-  goHomeActionID: 1
-  homePoint:
-    x: 0
-    y: 0
-    z: 10
-  goToAndWaitPriority: 3
-  goToAndWaitActionID: 2
-  timeToWait: 300
-  waitPoint:
-    x: 0
-    y: 0
-    z: 0
 --- !u!114 &927630682163949372
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -337,7 +310,7 @@ MonoBehaviour:
     x: 0
     y: 0
     z: 0
---- !u!114 &8926278558507947282
+--- !u!114 &8715528649054120181
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -346,22 +319,28 @@ MonoBehaviour:
   m_GameObject: {fileID: 8218783448138994627}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 13ce3547a52942f4a916fafdbfded91e, type: 3}
+  m_Script: {fileID: 11500000, guid: ca869b5f08c25cb48816137ef5ec134c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
---- !u!114 &2507494820635127788
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8218783448138994627}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1490608c2d804004a8b18ada30970dfe, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  typeEnum: 2
+  hasGoHomeAction: 1
+  goHomePriority: 2
+  goHomeActionID: 1
+  homePoint:
+    x: 0
+    y: 0
+    z: 10
+  hasGoToAndWaitAction: 1
+  goToAndWaitPriority: 3
+  goToAndWaitActionID: 2
+  timeToWait: 300
+  waitPoint:
+    x: 0
+    y: 0
+    z: 0
+  hasFollowWayPointsAction: 0
+  followWayPointsPriority: 0
+  followWayPointsID: 0
+  wayPoints: []
 --- !u!114 &1704192626930361998
 MonoBehaviour:
   m_ObjectHideFlags: 0

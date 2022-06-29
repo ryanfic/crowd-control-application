@@ -32,6 +32,14 @@ public class ReynoldsMovementSystem : SystemBase
             else{
                 result += movement.flockMovement;
             }
+            if(math.distance(movement.obstacleAvoidanceMovement, float3.zero) > behaviour.obstacleAvoidanceWeight) //if the obstacle avoidance movement is larger than its weight (its cap)
+            {
+                result += math.normalize(movement.obstacleAvoidanceMovement) * behaviour.obstacleAvoidanceWeight; // scale the movement to the weight, then add it to the overall movement
+            }
+            else
+            {
+                result += movement.obstacleAvoidanceMovement;
+            }
             if(math.distance(result,float3.zero) > behaviour.maxVelocity){ // if the overall movement is longer than the maxVelocity
                 result = math.normalize(result) * behaviour.maxVelocity; // scale the overall movement to the maxSpeed (keeping the direction)
             }
