@@ -1802,7 +1802,7 @@ MonoBehaviour:
   - {fileID: 4126424546397915538, guid: 8bdb4dc4e082ad14bb74bbc95361bf61, type: 3}
   percentsToSpawn:
   - 1
-  numberToSpawnPerSpawn: 100
+  numberToSpawnPerSpawn: 75
   crowdCounter: {fileID: 1677989989}
   delay: 0
   repeatSpawn: 1
@@ -2932,7 +2932,7 @@ MonoBehaviour:
   - {fileID: 7685220213608341921, guid: 5715db3adfe00134bbf9133826184430, type: 3}
   percentsToSpawn:
   - 1
-  numberToSpawnPerSpawn: 100
+  numberToSpawnPerSpawn: 75
   crowdCounter: {fileID: 1677989989}
   delay: 0
   repeatSpawn: 1
@@ -5242,7 +5242,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!114 &1811943077
 MonoBehaviour:
   m_ObjectHideFlags: 0

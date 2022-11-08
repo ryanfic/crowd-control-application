@@ -201,9 +201,9 @@ MonoBehaviour:
   goHomePriority: 4
   goHomeActionID: 1
   spawnDirection: 1
-  leftDestinationPercent: 0
-  rightDestinationPercent: 0
-  straightDestinationPercent: 1
+  leftDestinationPercent: 0.5
+  rightDestinationPercent: 0.5
+  straightDestinationPercent: 0
 --- !u!114 &3497965288203442542
 MonoBehaviour:
   m_ObjectHideFlags: 0
