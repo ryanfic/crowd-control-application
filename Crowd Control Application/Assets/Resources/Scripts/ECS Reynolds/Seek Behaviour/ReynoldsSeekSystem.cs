@@ -48,6 +48,9 @@ public class ReynoldsSeekSystem : SystemBase
                 ComponentType.ReadOnly<Translation>(),
                 typeof(ReynoldsMovementValues),
                 ComponentType.ReadOnly<HasReynoldsSeekTargetPos>()
+            },
+            None = new ComponentType[] { 
+                ComponentType.ReadOnly<BarricadeSwirlingMovementComponent>()
             }
         };
         base.OnCreate();
