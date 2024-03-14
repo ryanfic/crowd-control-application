@@ -96,7 +96,12 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
             priority = goHomePriority,
             timeCreated = 0f,
             dataHolder = homeHolder
-        }); 
+        });
+
+        dstManager.AddComponentData<FinalDestinationComponent>(entity, new FinalDestinationComponent
+        {
+            destination = homePoint
+        });
 
         if(!OppositeDirections(spawnDirection,destinationDirection)){
             goToAndWaitActionID = goHomeActionID+1;
@@ -213,7 +218,7 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         //Select the min/max value for random selection
         switch(spawnDir){
             case Direction.North:
-                if(DirectionToLeft(spawnDir,destinationDir)){ //if moving to the left, going from north to east
+                /*if(DirectionToLeft(spawnDir,destinationDir)){ //if moving to the left, going from north to east
                     //use values of the top right side of the intersection
                     minX = 2.5f;
                     maxX = 5f;
@@ -226,11 +231,17 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     maxX = -2.5f;
                     minZ = 2.5f;
                     maxZ = 5f;
-                }
-                    
+                }*/
+
+                // For swirling:
+                minX = -5f;
+                maxX = -2.5f;
+                minZ = 2.5f;
+                maxZ = 5f;
+
                 break;
             case Direction.South:
-                if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from south to west
+                /*if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from south to west
                     //use values of the bottom left side of the intersection
                     minX = -5f;
                     maxX = -2.5f;
@@ -243,10 +254,17 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     maxX = 5f;
                     minZ = -5f;
                     maxZ = -2.5f;
-                }
+                }*/
+
+                //For swirling
+                minX = 2.5f;
+                maxX = 5f;
+                minZ = -3f;
+                maxZ = -2.5f;
+
                 break;
             case Direction.East:
-                if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from east to south
+                /*if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from east to south
                     //use values of the bottom right side of the intersection
                     minX = 2.5f;
                     maxX = 5f;
@@ -259,10 +277,17 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     maxX = 5f;
                     minZ = 2.5f;
                     maxZ = 5f;
-                }
+                }*/
+
+                // for swirling
+                minX = 2f;
+                maxX = 2.5f;
+                minZ = 2.5f;
+                maxZ = 5f;
+
                 break;
             case Direction.West:
-                if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from west to north
+                /*if(DirectionToLeft(spawnDir,destinationDir)){//if moving to the left, going from west to north
                     //use values of the top left side of the intersection
                     minX =-5f;
                     maxX = -2.5f;
@@ -275,7 +300,13 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                     maxX = -2.5f;
                     minZ = -5f;
                     maxZ = -2.5f;
-                }
+                }*/
+
+                //for swirling
+                minX = -2.5f;
+                maxX = -2f;
+                minZ = -5f;
+                maxZ = -2.5f;
                 break;
             default:
                 Debug.Log("Direction Not Found");
@@ -363,14 +394,14 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
         //Select the min/max value for random selection
         switch(dir){
             case Direction.North:
-                minX = -4.5f;
+                minX = 0f;
                 maxX = 4.5f;
                 minZ = 18.5f;
                 maxZ = 24.5f;
                 break;
             case Direction.South:
                 minX = -4.5f;
-                maxX = 4.5f;
+                maxX = 0f;
                 minZ = -24.5f;
                 maxZ = -18.5f;
                 break;
@@ -378,12 +409,12 @@ public class CrowdWaitTrailAuthoring : MonoBehaviour, IConvertGameObjectToEntity
                 minX = 18.5f;
                 maxX = 24.5f;
                 minZ = -4.5f;
-                maxZ = 4.5f;
+                maxZ = 0f;
                 break;
             case Direction.West:
                 minX = -18.5f;
                 maxX = -24.5f;
-                minZ = -4.5f;
+                minZ = 0f;
                 maxZ = 4.5f;
                 break;
             default:
